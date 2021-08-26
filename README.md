@@ -14,8 +14,14 @@ Switch to the `verida-js` monorepo and create a subtree branch for the current v
 git subtree split -P packages/client-ts -b subtree/<version>
 ```
 
-Switch back to this repo and merge
+Switch back to this repo and merge:
 
 ```
-git subtree pull -P ../client-rn client-ts-source subtree/<version> --squash
+git subtree pull -P client-rn client-ts-source subtree/<version> --squash
+```
+
+Switch to `verida-js` and delete the newly created branch
+
+```
+git branch -D subtree/<version>
 ```

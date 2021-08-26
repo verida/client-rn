@@ -20,12 +20,13 @@
     "node": "^12.0.0"
   },
   "dependencies": {
-    "@ceramicnetwork/http-client": "^1.0.7",
     "@craftzdog/pouchdb-core-react-native": "^7.2.2",
-    "@verida/account": "*",
-    "@verida/keyring": "*",
+    "@ceramicnetwork/http-client": "^1.0.7",
     "@verida/pouchdb-replication-react-native": "^7.0.0-prerelease",
-    "@verida/storage-link": "*",
+    "@verida/account": "^0.1.4",
+    "@verida/encryption-utils": "^0.2.3",
+    "@verida/keyring": "^0.1.4",
+    "@verida/storage-link": "^0.1.4",
     "ajv": "^8.6.2",
     "axios": "^0.21.1",
     "buffer": "^6.0.3",
