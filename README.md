@@ -1,10 +1,11 @@
-https://gist.github.com/alfredringstad/ac0f7a1e081e9ee485e653b6a8351212
 
-Things to do:
+# Developer notes
 
-- Document how I setup this repo and linked the subtree
-- Remove react native branches from the verida-js repo
-- (D) Upgrade verida-js lerna to be using yarn, clean up that mess
+## Configuraetion
+
+This repo is a fork of `@verida/client-ts`. It uses git subtree's to merge the latest changes as required (see below).
+
+This was inspired from https://gist.github.com/alfredringstad/ac0f7a1e081e9ee485e653b6a8351212
 
 ## Merging from `verida-js`
 
