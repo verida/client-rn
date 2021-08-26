@@ -1,6 +1,14 @@
-const PouchDB = require('pouchdb')
+import PouchDB from '@craftzdog/pouchdb-core-react-native'
+import HttpPouch from 'pouchdb-adapter-http'
+import replication from '@verida/pouchdb-replication-react-native'
+import mapreduce from 'pouchdb-mapreduce'
 const PouchDBFind = require('pouchdb-find')
-PouchDB.plugin(PouchDBFind)
+
+PouchDB
+    .plugin(HttpPouch)
+    .plugin(replication)
+    .plugin(mapreduce)
+    .plugin(PouchDBFind)
 
 import BaseDb from './base-db'
 

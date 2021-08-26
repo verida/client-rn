@@ -1,12 +1,29 @@
-const PouchDB = require('pouchdb')
+import PouchDB from '@craftzdog/pouchdb-core-react-native'
+import PouchDBCrypt from '@craftzdog/pouchdb-core-react-native'
+import HttpPouch from 'pouchdb-adapter-http'
+import replication from '@verida/pouchdb-replication-react-native'
+import mapreduce from 'pouchdb-mapreduce'
+import SQLite from 'react-native-sqlite-2'
+import SQLiteAdapterFactory from 'pouchdb-adapter-react-native-sqlite'
+const SQLiteAdapter = SQLiteAdapterFactory(SQLite)
 const PouchDBFind = require('pouchdb-find')
-const PouchDBCrypt = require('pouchdb')
-
-PouchDBCrypt.plugin(PouchDBFind)
-PouchDB.plugin(PouchDBFind)
-
 const CryptoPouch = require('crypto-pouch')
-PouchDBCrypt.plugin(CryptoPouch)
+
+
+PouchDB.plugin(HttpPouch)
+  .plugin(replication)
+  .plugin(mapreduce)
+  .plugin(PouchDBFind)
+  .plugin(SQLiteAdapter)
+
+
+PouchDBCrypt
+  .plugin(HttpPouch)
+  .plugin(replication)
+  .plugin(mapreduce)
+  .plugin(PouchDBFind)
+  .plugin(SQLiteAdapter)
+  .plugin(CryptoPouch)
 
 import { VeridaDatabaseConfig } from "./interfaces"
 import BaseDb from './base-db'
@@ -53,9 +70,13 @@ export default class EncryptedDatabase extends BaseDb {
         }
 
         await super.init()
-        
-        this._localDbEncrypted = new PouchDB(this.databaseHash)
-        this._localDb = new PouchDBCrypt(this.databaseHash)
+
+        this._localDbEncrypted = new PouchDB(this.databaseHash, {
+            adapter: 'react-native-sqlite'
+        })
+        this._localDb = new PouchDBCrypt(this.databaseHash, {
+            adapter: 'react-native-sqlite'
+        })
         
         this._localDb.crypto("", {
             "key": this.encryptionKey,
