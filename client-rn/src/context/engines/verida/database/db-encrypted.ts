@@ -6,8 +6,8 @@ import mapreduce from 'pouchdb-mapreduce'
 import SQLite from 'react-native-sqlite-2'
 import SQLiteAdapterFactory from 'pouchdb-adapter-react-native-sqlite'
 const SQLiteAdapter = SQLiteAdapterFactory(SQLite)
-const PouchDBFind = require('pouchdb-find')
-const CryptoPouch = require('crypto-pouch')
+import * as CryptoPouch from "crypto-pouch"
+import * as PouchDBFind from "pouchdb-find"
 
 
 PouchDB.plugin(HttpPouch)
@@ -79,12 +79,7 @@ export default class EncryptedDatabase extends BaseDb {
         })
         
         this._localDb.crypto("", {
-            "key": this.encryptionKey,
-            cb: function(err: any) {
-                if (err) {
-                    throw new Error('Unable to connect to local database')
-                }
-            }
+            "key": this.encryptionKey
         })
 
         this._remoteDbEncrypted = new PouchDB(this.dsn + this.databaseHash, {
@@ -218,7 +213,8 @@ export default class EncryptedDatabase extends BaseDb {
             dsn: this.dsn,
             storageContext: this.storageContext,
             databaseName: this.databaseName,
-            databasehash: this.databaseHash
+            databasehash: this.databaseHash,
+            encryptionKey: this.encryptionKey!
             // @todo: add databases
         }
 

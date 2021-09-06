@@ -1,5 +1,5 @@
 import { DIDContextConfigs } from './interfaces'
-import { AccountInterface } from '@verida/account'
+import AccountInterface from './account-interface'
 import { StorageLink, DIDStorageConfig } from '@verida/storage-link'
 
 import CeramicClient from '@ceramicnetwork/http-client'
@@ -65,7 +65,7 @@ export default class DIDContextManager {
         return storageConfig
     }
 
-    public async getDIDContextConfig(did: string, contextName: string, forceCreate: boolean = true): Promise<Interfaces.SecureContextConfig> {
+    public async getDIDContextConfig(did: string, contextName: string, forceCreate?: boolean): Promise<Interfaces.SecureContextConfig> {
         const contextHash = StorageLink.hash(`${did}/${contextName}`)
 
         if (this.didContexts[contextHash]) {

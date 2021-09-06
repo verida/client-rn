@@ -2,10 +2,11 @@ import Encryption from '@verida/encryption-utils'
 const bs58 = require('bs58')
 const _ = require('lodash')
 
-import { AccountInterface } from '@verida/account'
+import AccountInterface from './account-interface'
 import CeramicClient from '@ceramicnetwork/http-client'
+import { Interfaces } from '@verida/storage-link'
 
-import { ManagerConfig } from './interfaces'
+import { ClientConfig } from './interfaces'
 import Context from './context/context'
 import DIDContextManager from './did-context-manager'
 import Schema from './context/schema'
@@ -23,7 +24,7 @@ export default class Client {
 
     private environment: string
 
-    constructor(userConfig: ManagerConfig) {
+    constructor(userConfig: ClientConfig) {
         this.environment = userConfig.environment ? userConfig.environment : DEFAULT_CONFIG.environment
 
         const defaultConfig = DEFAULT_CONFIG.environments[this.environment] ? DEFAULT_CONFIG.environments[this.environment] : {}
@@ -56,7 +57,7 @@ export default class Client {
      */
     public async openContext(contextName: string, forceCreate: boolean = true): Promise<Context | undefined> {
         if (forceCreate) {
-            if (!this.did || !this.account) {
+            if (!this.account) {
                 throw new Error('Unable to force create a storage context when not connected')
             }
         }
@@ -67,7 +68,11 @@ export default class Client {
         }
 
         // @todo cache the storage contexts
-        return new Context(contextName, this.didContextManager, this.account)
+        return new Context(this, contextName, this.didContextManager, this.account)
+    }
+
+    public async getContextConfig(did: string, contextName: string): Promise<Interfaces.SecureContextConfig | undefined> {
+        return this.didContextManager.getDIDContextConfig(did, contextName, false)
     }
 
     /**

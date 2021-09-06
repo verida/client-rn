@@ -2,7 +2,7 @@ import PouchDB from '@craftzdog/pouchdb-core-react-native'
 import HttpPouch from 'pouchdb-adapter-http'
 import replication from '@verida/pouchdb-replication-react-native'
 import mapreduce from 'pouchdb-mapreduce'
-const PouchDBFind = require('pouchdb-find')
+import * as PouchDBFind from "pouchdb-find"
 
 PouchDB
     .plugin(HttpPouch)
@@ -26,11 +26,6 @@ export default class PublicDatabase extends BaseDb {
         const databaseName = this.databaseName
         
         this._remoteDb = new PouchDB(this.dsn + this.databaseHash, {
-            cb: function(err: any) {
-                if (err) {
-                    throw new Error(`Unable to connect to remote database: ${databaseName}`)
-                }
-            },
             skip_setup: true
         })
 

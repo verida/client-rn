@@ -1,4 +1,4 @@
-import { AccountInterface } from '@verida/account'
+import AccountInterface from '../account-interface'
 
 export interface DatabaseOpenConfig {
     permissions?: PermissionsConfig,
@@ -7,7 +7,8 @@ export interface DatabaseOpenConfig {
     saveDatabase?: boolean,
     readOnly?: boolean,
     isOwner?: boolean,
-    encryptionKey?: string
+    encryptionKey?: string,
+    createContext?: boolean
 }
 
 export interface DatastoreOpenConfig {
@@ -16,7 +17,12 @@ export interface DatastoreOpenConfig {
     saveDatabase?: boolean,
     readOnly?: boolean,
     encryptionKey?: string,
-    databaseName?: string
+    databaseName?: string,
+    createContext?: boolean
+}
+
+export interface MessagesConfig {
+    maxItems?: Number
 }
 
 export interface StorageEngineTypes {
@@ -26,12 +32,17 @@ export interface StorageEngineTypes {
 export interface PermissionsConfig {
     read: PermissionOptionsEnum,
     write: PermissionOptionsEnum,
-    readList: string[],
-    writeList: string[]
+    readList?: string[],
+    writeList?: string[]
 }
 
 export enum PermissionOptionsEnum {
     OWNER = 'owner',
     PUBLIC = 'public',
     USERS = 'users'
+}
+
+export interface MessageSendConfig {
+    recipientContextName?: string,
+    expiry?: Number
 }
