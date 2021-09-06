@@ -1,11 +1,11 @@
 const EventEmitter = require('events')
 const _ = require('lodash')
-const jsSHA = require("jssha")
 const uuidv1 = require('uuid/v1')
+import * as jsSHA from "jssha"
 
 import { VeridaDatabaseConfig } from "./interfaces"
-import Database from '../../database'
-import { PermissionsConfig } from '../../interfaces'
+import Database from '../../../database'
+import { PermissionsConfig } from '../../../interfaces'
 import { StorageLink } from '@verida/storage-link'
 import DatastoreServerClient from "./client"
 import Utils from './utils'
@@ -84,7 +84,7 @@ export default class BaseDb extends EventEmitter implements Database {
     }
 
     private buildHash(text: string) {
-        const jsHash = new jsSHA('SHA-256', 'TEXT')
+        const jsHash = new jsSHA.default('SHA-256', 'TEXT')
         jsHash.update(text)
         return jsHash.getHash('HEX')
     }
@@ -248,6 +248,20 @@ export default class BaseDb extends EventEmitter implements Database {
 
         doc._deleted = true;
         return this.save(doc, options)
+    }
+
+    public async deleteAll(): Promise<void> {
+        let rows: any = await this.getMany()
+        if (rows.length == 0) {
+            return
+        }
+
+        let rowId: any
+        for (rowId in rows) {
+            await this.delete(rows![rowId]['_id'])
+        }
+
+        await this.deleteAll()
     }
 
     public async get(docId: string, options: any = {}) {
