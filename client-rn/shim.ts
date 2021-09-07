@@ -7,7 +7,7 @@ if (typeof process === 'undefined') {
   const bProcess = require('process')
   for (var p in bProcess) {
     if (!(p in process)) {
-      process[p] = bProcess[p]
+      (process as any)[p] = bProcess[p]
     }
   }
 }

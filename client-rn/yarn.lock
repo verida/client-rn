@@ -763,6 +763,11 @@
     "@stablelib/wipe" "^1.0.1"
     "@stablelib/xchacha20" "^1.0.1"
 
+"@types/base-64@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@types/base-64/-/base-64-1.0.0.tgz#de9c6070ea457fbd65a1b5ebf13976b3ac0bdad0"
+  integrity sha512-AvCJx/HrfYHmOQRFdVvgKMplXfzTUizmh0tz9GFTpDePWgCY4uoKll84zKlaRoeiYiCr7c9ZnqSTzkl0BUVD6g==
+
 "@types/debug@*":
   version "4.1.7"
   resolved "https://registry.yarnpkg.com/@types/debug/-/debug-4.1.7.tgz#7cc0ea761509124709b8b2d1090d8f6c17aadb82"
@@ -784,6 +789,11 @@
   version "0.7.31"
   resolved "https://registry.yarnpkg.com/@types/ms/-/ms-0.7.31.tgz#31b7ca6407128a3d2bbc27fe2d21b345397f6197"
   integrity sha512-iiUgKzV9AuaEkZqkOLDIvlQiL6ltuZd9tGcW3gwpnX8JbuiuhFlEGmmFXEXkN50Cvq7Os88IY2v0dkDqXYWVgA==
+
+"@types/node@^16.7.12":
+  version "16.7.12"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-16.7.12.tgz#4e30f80bfa9983fbc3b55875c0522da0303f4e95"
+  integrity sha512-IrhrusVM9QJAn1xLFFqbZH+XCI8L6eZoVHjR4sZeGTBBvjQSuchXGgKpown1jP75TCMSndcbudYBDTekOhcIZA==
 
 "@types/pouchdb-adapter-cordova-sqlite@*":
   version "1.0.1"
