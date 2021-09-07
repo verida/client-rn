@@ -43,13 +43,17 @@ export default class Client {
      * @param ceramic 
      */
     public async connect(account: AccountInterface) {
+        if (this.isConnected()) {
+            throw new Error("Account is already connected.")
+        }
+
         this.account = account
         this.did = await this.account!.did()
         this.didContextManager.setAccount(this.account)   
     }
 
     public isConnected() {
-        return this.did ? true : false
+        return typeof(this.account) != "undefined"
     }
 
     /**
@@ -123,6 +127,10 @@ export default class Client {
         }
 
         return validSignatures
+    }
+
+    public async getSchema(schemaName: string): Promise<Schema> {
+        return Schema.getSchema(schemaName)
     }
 
 }

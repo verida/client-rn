@@ -21,6 +21,7 @@ export default class PublicDatabase extends BaseDb {
         if (this._remoteDb) {
             return
         }
+        
         await super.init()
 
         const databaseName = this.databaseName
@@ -63,7 +64,7 @@ export default class PublicDatabase extends BaseDb {
         await this.init()
 
         const info = {
-            type: 'VeridaStorage',
+            type: 'VeridaDatabase',
             privacy: 'public',
             did: this.did,
             dsn: this.dsn,
