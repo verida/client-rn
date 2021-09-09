@@ -54,12 +54,6 @@ export default class EncryptedDatabase extends BaseDb {
     constructor(config: VeridaDatabaseConfig) {
         super(config)
 
-        // Automatically convert encryption key to a Buffer if it's a hex string
-        /*if (typeof(encryptionKey) == 'string') {
-            this.encryptionKey = Buffer.from(encryptionKey.slice(2), 'hex');
-        } else {
-            this.encryptionKey = encryptionKey
-        }*/
         this.encryptionKey = config.encryptionKey!
 
         // PouchDB sync object
@@ -80,8 +74,16 @@ export default class EncryptedDatabase extends BaseDb {
             adapter: 'react-native-sqlite'
         })
         
-        this._localDb.crypto("", {
-            "key": this.encryptionKey
+        // Generate an encryption password from the encryption key
+        const password = Buffer.from(this.encryptionKey).toString('hex')
+
+        // Generate a deterministic salt from the password and database hash
+        const saltString = this.buildHash(`${password}/${this.databaseHash}`).substring(0,32)
+        const salt = Buffer.from(saltString, 'hex')
+
+        await this._localDb.crypto({
+            password,
+            salt
         })
 
         this._remoteDbEncrypted = new PouchDB(this.dsn + this.databaseHash, {
@@ -118,7 +120,12 @@ export default class EncryptedDatabase extends BaseDb {
 
         // Do a once off sync to ensure the local database pulls all data from remote server
         // before commencing live syncronisation between the two databases
-        await this._localDbEncrypted.replicate.from(this._remoteDbEncrypted)
+        await this._localDbEncrypted.replicate.from(this._remoteDbEncrypted, {
+            // Dont sync design docs
+            filter: function(doc: any) {
+                return doc._id.indexOf('_design') !== 0;
+            }
+        })
             .on("error", function(err: any) {
                 console.error(`Unknown error occurred with replication snapshot from remote database: ${databaseName} (${dsn})`)
                 console.error(err)
@@ -159,7 +166,7 @@ export default class EncryptedDatabase extends BaseDb {
         } catch (err: any) {
             // This error message is thrown by the underlying decrypt library if the
             // data can't be decrypted
-            if (err.message == `Unsupported state or unable to authenticate data`) {
+            if (err.message == `Unsupported state or unable to authenticate data` || err.message == "Could not decrypt!") {
                 // Clear the instantiated PouchDb instances and throw a more useful exception
                 this._localDb = this._localDbEncrypted = this._remoteDbEncrypted = null
                 throw new Error(`Invalid encryption key supplied`)

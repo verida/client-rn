@@ -33,7 +33,7 @@
     "buffer": "^6.0.3",
     "console-browserify": "^1.1.0",
     "constants-browserify": "^1.0.0",
-    "crypto-pouch": "https://github.com/tahpot/crypto-pouch.git#910feb51dd006d9a05639d984501eeda77e213bf",
+    "crypto-pouch": "https://github.com/tahpot/crypto-pouch.git#feature/support-key-import",
     "did-jwt": "^5.6.3",
     "dns.js": "^1.0.1",
     "domain-browser": "^1.1.1",
