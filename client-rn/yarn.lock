@@ -1035,6 +1035,17 @@
     "@ceramicnetwork/http-client" "^1.2.0"
     ethers "^5.4.1"
 
+"@verida/account@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@verida/account/-/account-1.0.0.tgz#fc0f336a5382faec695f9f1f78ce02dbab787e63"
+  integrity sha512-eyCRIxQLqT50reEMfD6I3DZFH+U/HktgOxETv7ubRjbkP1Ap4XcXlmEqAFypXC5UIRwScL+mKCwSOHx8MjScsQ==
+  dependencies:
+    "@verida/keyring" "^1.0.0"
+    "@verida/storage-link" "^1.0.0"
+    did-jwt "^5.7.0"
+    lodash "^4.17.21"
+    tweetnacl-util "^0.15.1"
+
 "@verida/encryption-utils@^1.0.0":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@verida/encryption-utils/-/encryption-utils-1.0.0.tgz#893ea2c93cbd9e9b1cc3bf26239301d74318977a"
@@ -1796,7 +1807,7 @@ detect-libc@^1.0.2:
   resolved "https://registry.yarnpkg.com/detect-libc/-/detect-libc-1.0.3.tgz#fa137c4bd698edf55cd5cd02ac559f91a4c4ba9b"
   integrity sha1-+hN8S9aY7fVc1c0CrFWfkaTEups=
 
-did-jwt@^5.0.1, did-jwt@^5.2.0, did-jwt@^5.6.1, did-jwt@^5.6.3:
+did-jwt@^5.0.1, did-jwt@^5.2.0, did-jwt@^5.6.1, did-jwt@^5.6.3, did-jwt@^5.7.0:
   version "5.7.0"
   resolved "https://registry.yarnpkg.com/did-jwt/-/did-jwt-5.7.0.tgz#7c5284daece5c86388db90e1274d0df63bb20f52"
   integrity sha512-etWD68ZugZ+mf9PoA+unFc1A9IPrCpD8CXeOu7cCLOtXum30TO6OU73a+AoDPie1R4knO1yGLv/3dPZ68CufFw==
