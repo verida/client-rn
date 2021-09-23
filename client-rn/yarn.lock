@@ -1065,6 +1065,17 @@
     tweetnacl "^1.0.3"
     uuid "^8.3.2"
 
+"@verida/keyring@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@verida/keyring/-/keyring-1.0.1.tgz#38ce08de2400f43a675256ecabbcdd3e58297ae0"
+  integrity sha512-gGyB6BoX2wcUXX+ZRVH2q/3oIRgJsH9B3GwKU4cy7YzaOYh+PXdBDQaQtNear/5BqadB7ubqBGBRivWlzuMf6g==
+  dependencies:
+    "@verida/encryption-utils" "^1.0.0"
+    bs58 "^4.0.1"
+    jssha "^3.2.0"
+    tweetnacl "^1.0.3"
+    uuid "^8.3.2"
+
 "@verida/pouchdb-replication-react-native@^7.0.0-prerelease":
   version "7.0.0-prerelease"
   resolved "https://registry.yarnpkg.com/@verida/pouchdb-replication-react-native/-/pouchdb-replication-react-native-7.0.0-prerelease.tgz#a33292678e1a4dcf5243c3dc0bf350035e16832a"
@@ -1079,6 +1090,17 @@
     "@ceramicstudio/idx" "^0.12.1"
     "@verida/3id-utils-node" "^1.0.0"
     "@verida/keyring" "^1.0.0"
+    jssha "^3.2.0"
+
+"@verida/storage-link@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@verida/storage-link/-/storage-link-1.0.1.tgz#736a6ee9f2af75852254443fd5758f9fa179bb48"
+  integrity sha512-uz5imNqdr5/wc05196Ho8pl9CmJ9p172KxRv65PABJX1qZQYTz4sKQSQNgaHd0Z2RYMZL12k6h/J08Q2a7LJ/w==
+  dependencies:
+    "@ceramicnetwork/http-client" "^1.2.0"
+    "@ceramicstudio/idx" "^0.12.1"
+    "@verida/3id-utils-node" "^1.0.0"
+    "@verida/keyring" "^1.0.1"
     jssha "^3.2.0"
 
 Base64@~0.2.0:
