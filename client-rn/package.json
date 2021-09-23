@@ -1,7 +1,7 @@
 {
   "name": "@verida/client-rn",
   "version": "0.1.0",
-  "main": "dist/src/index.js",
+  "main": "dist/index.js",
   "license": "ISC",
   "directories": {
     "src": "src",
@@ -20,7 +20,7 @@
     "@ceramicnetwork/http-client": "^1.2.0",
     "@craftzdog/pouchdb-core-react-native": "^7.2.2",
     "@tradle/react-native-http": "^2.0.0",
-    "@verida/account": "^1.0.0",
+    "@verida/account": "^1.0.1",
     "@verida/encryption-utils": "^1.0.0",
     "@verida/keyring": "^1.0.1",
     "@verida/pouchdb-replication-react-native": "^7.0.0-prerelease",

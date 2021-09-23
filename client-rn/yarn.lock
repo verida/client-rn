@@ -1035,13 +1035,13 @@
     "@ceramicnetwork/http-client" "^1.2.0"
     ethers "^5.4.1"
 
-"@verida/account@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@verida/account/-/account-1.0.0.tgz#fc0f336a5382faec695f9f1f78ce02dbab787e63"
-  integrity sha512-eyCRIxQLqT50reEMfD6I3DZFH+U/HktgOxETv7ubRjbkP1Ap4XcXlmEqAFypXC5UIRwScL+mKCwSOHx8MjScsQ==
+"@verida/account@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@verida/account/-/account-1.0.1.tgz#1ba631867c8109774ef42b26ac0f4b2282ba6915"
+  integrity sha512-z8Kv+mybak+SDEfSXpI4F+XB6ser82XqdXW5K0q4mU6m2lkBHp3pW1fWQtW8TnSUBP/IFX85N8vcNfsAwstA5Q==
   dependencies:
-    "@verida/keyring" "^1.0.0"
-    "@verida/storage-link" "^1.0.0"
+    "@verida/keyring" "^1.0.1"
+    "@verida/storage-link" "^1.0.1"
     did-jwt "^5.7.0"
     lodash "^4.17.21"
     tweetnacl-util "^0.15.1"
@@ -1053,17 +1053,6 @@
   dependencies:
     tweetnacl "^1.0.3"
     tweetnacl-util "^0.15.1"
-
-"@verida/keyring@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@verida/keyring/-/keyring-1.0.0.tgz#455717cf9895bebad86c0203b161a7620ee1d818"
-  integrity sha512-dUGlNxEczmiLfW/0DHMwj1YUsfISFyBKX5dfj/3WrtoLgW13WLfyP9veVnrYw+o5bqJ0YbdiRnw4grEHmzXwyw==
-  dependencies:
-    "@verida/encryption-utils" "^1.0.0"
-    bs58 "^4.0.1"
-    jssha "^3.2.0"
-    tweetnacl "^1.0.3"
-    uuid "^8.3.2"
 
 "@verida/keyring@^1.0.1":
   version "1.0.1"
@@ -1080,17 +1069,6 @@
   version "7.0.0-prerelease"
   resolved "https://registry.yarnpkg.com/@verida/pouchdb-replication-react-native/-/pouchdb-replication-react-native-7.0.0-prerelease.tgz#a33292678e1a4dcf5243c3dc0bf350035e16832a"
   integrity sha512-hIUujAz5gYxk2tKSimB9b3tClsuMX61hGkVIU8t0qur8JQyhO8Yl87Ip91c/GChHu0eOUrVYCw9swXj9K+3aag==
-
-"@verida/storage-link@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@verida/storage-link/-/storage-link-1.0.0.tgz#4be5167f2d8fe5834d497a6f543b12a21c8335b9"
-  integrity sha512-zRdbHA77DKHqbAwyHpTd3I6YXVRtkPCEhaEadLpjkEELfUzO2PmYPRT9ShK7NkbKwlGr7AQ7klJBrwKh2q197g==
-  dependencies:
-    "@ceramicnetwork/http-client" "^1.2.0"
-    "@ceramicstudio/idx" "^0.12.1"
-    "@verida/3id-utils-node" "^1.0.0"
-    "@verida/keyring" "^1.0.0"
-    jssha "^3.2.0"
 
 "@verida/storage-link@^1.0.1":
   version "1.0.1"
