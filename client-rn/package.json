@@ -17,14 +17,13 @@
     "node": "^12.0.0"
   },
   "dependencies": {
-    "@ceramicnetwork/http-client": "^1.2.0",
     "@craftzdog/pouchdb-core-react-native": "^7.2.2",
     "@tradle/react-native-http": "^2.0.0",
-    "@verida/account": "^1.0.1",
+    "@ceramicnetwork/http-client": "^1.3.0",
+    "@verida/account": "^1.0.2",
     "@verida/encryption-utils": "^1.0.0",
     "@verida/keyring": "^1.0.1",
-    "@verida/pouchdb-replication-react-native": "^7.0.0-prerelease",
-    "@verida/storage-link": "^1.0.1",
+    "@verida/storage-link": "^1.0.2",
     "ajv": "^8.6.2",
     "assert": "^1.1.1",
     "axios": "^0.21.1",
