@@ -957,10 +957,10 @@
   resolved "https://registry.yarnpkg.com/@ungap/promise-all-settled/-/promise-all-settled-1.1.2.tgz#aa58042711d6e3275dd37dc597e5d31e8c290a44"
   integrity sha512-sL/cEvJWAnClXw0wHk85/2L0G6Sj8UB0Ctc1TEMbKSsmpRosqhwj9gWgFRZSrBr2f9tiXISwNhCPmlfqUqyb9Q==
 
-"@verida/3id-utils-node@^1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@verida/3id-utils-node/-/3id-utils-node-1.0.1.tgz#5e321e5305fd1000ee150bc56018109cc8333a6c"
-  integrity sha512-S+EbkcWc3WrGbs7zWiSlKbKM46s4/xOtYXrytptX4IVrDko8XxYgRPDEWSGi28xtscIImOyaeIDDr2g9GjMajQ==
+"@verida/3id-utils-node@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@verida/3id-utils-node/-/3id-utils-node-1.0.2.tgz#a77aefbb5ec08e1fc615fd26100a72a157435891"
+  integrity sha512-qXjwjHI1wrmlDq8yR1A60pLV+In5CcV/SO0Afnosyia+qF9+uZ3neFrjcvIXcyEmvgDtCM4qe4PtpQxNoy3aRw==
   dependencies:
     "3id-did-provider" "^1.1.0"
     "@3id/manager" "^0.2.6"
@@ -971,13 +971,13 @@
     near-api-js "^0.42.0"
     near-seed-phrase "^0.2.0"
 
-"@verida/account@^1.0.2":
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/@verida/account/-/account-1.0.2.tgz#9b7a406c690d45a47f1fbc822b21b7e73877cfef"
-  integrity sha512-Q1zSsdCPtzKtxNXznWau8sReHJMVApgUh5mgU3dMjPQhyw4geTFtipi4lM6/7k5spk6ekffWNVPRx830IsBBcA==
+"@verida/account@^1.0.3":
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@verida/account/-/account-1.0.3.tgz#377a2a6437f4b318dd1905448b2ff4b5c7b78037"
+  integrity sha512-QpJpMx5aK228u2RwQJ0OeJcbCNSrXrUhunSeVMoX2vSwdLR+rQS+s1PmTx9QURxdmOIyXyLrDLvuoQ9YPMLZ0w==
   dependencies:
     "@verida/keyring" "^1.0.1"
-    "@verida/storage-link" "^1.0.2"
+    "@verida/storage-link" "^1.0.3"
     did-jwt "^5.7.0"
     lodash "^4.17.21"
     tweetnacl-util "^0.15.1"
@@ -1006,14 +1006,14 @@
   resolved "https://registry.yarnpkg.com/@verida/pouchdb-replication-react-native/-/pouchdb-replication-react-native-7.0.0-prerelease.tgz#a33292678e1a4dcf5243c3dc0bf350035e16832a"
   integrity sha512-hIUujAz5gYxk2tKSimB9b3tClsuMX61hGkVIU8t0qur8JQyhO8Yl87Ip91c/GChHu0eOUrVYCw9swXj9K+3aag==
 
-"@verida/storage-link@^1.0.2":
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/@verida/storage-link/-/storage-link-1.0.2.tgz#68284adad98d38f6babbe9c80a321d6ed5eae50e"
-  integrity sha512-5Z56zBJm/sGnlHhsKOEhGAKspE3hh5lFBG7H5GUJ0APAS85yDyRbUxmD9ooIJFhQJfpKtsuHXWoo/5RoQD7Erw==
+"@verida/storage-link@^1.0.3":
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@verida/storage-link/-/storage-link-1.0.3.tgz#ed99aca98edeeec66e173f0533d3948ff65e8062"
+  integrity sha512-juszizFG/um+Pybnvb0skOqOsg4+bZTs0W0lP2rqoDixPQbVpABkaUdWxrVdl72jpbkUoVs85T/Zfdi++n0/rA==
   dependencies:
     "@ceramicnetwork/http-client" "^1.3.0"
     "@ceramicstudio/idx" "^0.12.2"
-    "@verida/3id-utils-node" "^1.0.1"
+    "@verida/3id-utils-node" "^1.0.2"
     "@verida/keyring" "^1.0.1"
     jssha "^3.2.0"
 
@@ -1681,7 +1681,7 @@ cross-fetch@^3.0.6, cross-fetch@^3.1.4:
 
 "crypto-pouch@git+https://github.com/tahpot/crypto-pouch.git#feature/support-key-import":
   version "4.0.1"
-  resolved "git+https://github.com/tahpot/crypto-pouch.git#e1b2cfbc8032ebc1869a13458df1d78a7d3e1449"
+  resolved "git+https://github.com/tahpot/crypto-pouch.git#7a712691b4404cfefb34ad3f58db1d83b55ed3bf"
   dependencies:
     garbados-crypt "git+https://github.com/tahpot/crypt.git#feature/pbkdf2"
     transform-pouch "^2.0.0"
