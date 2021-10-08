@@ -1,4 +1,5 @@
 import BaseDb from './base-db'
+import { DbRegistryEntry } from '../../../db-registry'
 import * as PouchDBFind from "pouchdb-find"
 import * as PouchDBLib from "pouchdb"
 
@@ -32,7 +33,7 @@ export default class PublicDatabase extends BaseDb {
                     await this.createDb()
                 }
                 else {
-                    throw new Error(`P!ublic database not found: ${databaseName}`)
+                    throw new Error(`Public database not found: ${databaseName}`)
                 }
             }
         } catch(err: any) {
@@ -65,11 +66,24 @@ export default class PublicDatabase extends BaseDb {
             dsn: this.dsn,
             storageContext: this.storageContext,
             databaseName: this.databaseName,
-            databasehash: this.databaseHash,
+            databaseHash: this.databaseHash,
             remoteDb: this.db._remoteDb
         }
 
         return info
+    }
+
+    public async registryEntry(): Promise<DbRegistryEntry> {
+        await this.init()
+        
+        return {
+            dbHash: this.databaseHash,
+            dbName: this.databaseName,
+            endpointType: 'VeridaDatabase',
+            did: this.did,
+            contextName: this.storageContext,
+            permissions: this.permissions!
+        }
     }
 
 }
