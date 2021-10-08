@@ -1,4 +1,14 @@
 import '../shim'
 import Client from './client'
+import Network from './network'
+import Context from './context/context'
+import Messaging from './context/messaging'
+import * as ContextInterfaces from './context/interfaces' 
 
-export default Client
+export {
+    Client,
+    Context,
+    Network,
+    Messaging,
+    ContextInterfaces
+}

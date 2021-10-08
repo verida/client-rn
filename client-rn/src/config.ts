@@ -1,10 +1,10 @@
 
 const config: any = {
-    environment: process.env.VERIDA_ENVIRONMENT || "local",
+    environment: process.env.VERIDA_ENVIRONMENT || "testnet",
     environments: {
         local: {
             // For core development
-            ceramicUrl: 'http://localhost:7001/',
+            ceramicUrl: 'https://gateway-clay.ceramic.network/',
             defaultDatabaseServerUrl: "http://localhost:5000/",
             defaultMessageServerUrl: "http://localhost:5000/",
             schemaPaths: {
@@ -15,8 +15,8 @@ const config: any = {
         },
         testnet: {
             ceramicUrl: 'https://gateway-clay.ceramic.network/',
-            defaultDatabaseServerUrl: "https://dataserver.testnet.verida.io:5000/",
-            defaultMessageServerUrl: "https://dataserver.testnet.verida.io:5000/",
+            defaultDatabaseServerUrl: "https://db.testnet.verida.io:5002/",
+            defaultMessageServerUrl: "https://db.testnet.verida.io:5002/",
             schemaPaths: {
                 '/': 'https://schemas.verida.io/',
                 'https://schemas.verida.io/': 'https://schemas.testnet.verida.io/'
@@ -30,7 +30,6 @@ const config: any = {
             }
         },*/
     },
-    //datastores: {},
     vaultAppName: "Verida: Vault"
 }
 

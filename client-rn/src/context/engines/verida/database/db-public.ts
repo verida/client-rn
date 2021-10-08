@@ -2,15 +2,15 @@ import PouchDB from '@craftzdog/pouchdb-core-react-native'
 import HttpPouch from 'pouchdb-adapter-http'
 import replication from '@verida/pouchdb-replication-react-native'
 import mapreduce from 'pouchdb-mapreduce'
-const PouchDBFind = require('pouchdb-find')
+import BaseDb from './base-db'
+import { DbRegistryEntry } from '../../../db-registry'
+import * as PouchDBFind from "pouchdb-find"
 
 PouchDB
     .plugin(HttpPouch)
     .plugin(replication)
     .plugin(mapreduce)
     .plugin(PouchDBFind)
-
-import BaseDb from './base-db'
 
 export default class PublicDatabase extends BaseDb {
 
@@ -21,16 +21,12 @@ export default class PublicDatabase extends BaseDb {
         if (this._remoteDb) {
             return
         }
+
         await super.init()
 
         const databaseName = this.databaseName
-        
+
         this._remoteDb = new PouchDB(this.dsn + this.databaseHash, {
-            cb: function(err: any) {
-                if (err) {
-                    throw new Error(`Unable to connect to remote database: ${databaseName}`)
-                }
-            },
             skip_setup: true
         })
 
@@ -44,7 +40,7 @@ export default class PublicDatabase extends BaseDb {
                     throw new Error(`Public database not found: ${databaseName}`)
                 }
             }
-        } catch(err) {
+        } catch(err: any) {
             if (this.isOwner) {
                 await this.createDb()
             }
@@ -68,17 +64,30 @@ export default class PublicDatabase extends BaseDb {
         await this.init()
 
         const info = {
-            type: 'VeridaStorage',
+            type: 'VeridaDatabase',
             privacy: 'public',
             did: this.did,
             dsn: this.dsn,
             storageContext: this.storageContext,
             databaseName: this.databaseName,
-            databasehash: this.databaseHash,
+            databaseHash: this.databaseHash,
             remoteDb: this.db._remoteDb
         }
 
         return info
+    }
+
+    public async registryEntry(): Promise<DbRegistryEntry> {
+        await this.init()
+
+        return {
+            dbHash: this.databaseHash,
+            dbName: this.databaseName,
+            endpointType: 'VeridaDatabase',
+            did: this.did,
+            contextName: this.storageContext,
+            permissions: this.permissions!
+        }
     }
 
 }

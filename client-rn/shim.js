@@ -1,4 +1,3 @@
-/* @ts-ignore */
 if (typeof __dirname === 'undefined') global.__dirname = '/'
 if (typeof __filename === 'undefined') global.__filename = ''
 if (typeof process === 'undefined') {
@@ -7,7 +6,7 @@ if (typeof process === 'undefined') {
   const bProcess = require('process')
   for (var p in bProcess) {
     if (!(p in process)) {
-      (process as any)[p] = bProcess[p]
+      process[p] = bProcess[p]
     }
   }
 }
@@ -22,15 +21,6 @@ if (typeof localStorage !== 'undefined') {
   localStorage.debug = isDev ? '*' : ''
 }
 
-if (typeof TextEncoder === 'undefined') global.TextEncoder = require('text-encoding-shim').TextEncoder
-if (typeof TextDecoder === 'undefined') global.TextDecoder = require('text-encoding-shim').TextDecoder
-
-import {decode, encode} from 'base-64'
-
-if (!global.btoa) {
-    global.btoa = encode;
-}
-
-if (!global.atob) {
-    global.atob = decode;
-}
+// If using the crypto shim, uncomment the following line to ensure
+// crypto is loaded first, so it can populate global.crypto
+// require('crypto')

@@ -1,9 +1,8 @@
 'use strict'
 const assert = require('assert')
 
-import VeridaNetwork from '../src/index'
-import { Utils } from '@verida/3id-utils-node'
-import { AutoAccount } from '@verida/account'
+import { Client } from '../src/index'
+import { AutoAccount } from '@verida/account-node'
 import { StorageLink } from '@verida/storage-link'
 
 import CONFIG from './config'
@@ -17,18 +16,8 @@ const ETH_PRIVATE_KEY = wallet.privateKey
  * WARNING: These tests create a new 3ID and storage context everytime they run!
  */
 describe('Storage initialization tests', () => {
-    // Instantiate utils
-    const utils = new Utils(CONFIG.CERAMIC_URL)
-    let ceramic
-    const network = new VeridaNetwork({
-        defaultDatabaseServer: {
-            type: 'VeridaDatabase',
-            endpointUri: 'https://localhost:7001/'
-        },
-        defaultMessageServer: {
-            type: 'VeridaMessage',
-            endpointUri: 'https://localhost:7001/'
-        },
+    let ceramic, did
+    const network = new Client({
         ceramicUrl: CONFIG.CERAMIC_URL
     })
 
@@ -45,10 +34,14 @@ describe('Storage initialization tests', () => {
         })
 
         it('can authenticate a user', async function() {
-            ceramic = await utils.createAccount('ethr', ETH_PRIVATE_KEY)
-            const account = new AutoAccount(ceramic)
+            const account = new AutoAccount(CONFIG.DEFAULT_ENDPOINTS, {
+                chain: 'ethr',
+                privateKey: ETH_PRIVATE_KEY,
+                ceramicUrl: CONFIG.CERAMIC_URL
+            })
+            ceramic = await account.getCeramic()
 
-            const did = account.did()
+            did = await account.did()
             const seed = account.keyring(CONFIG.CONTEXT_NAME)
 
             assert.ok(did)
@@ -66,7 +59,7 @@ describe('Storage initialization tests', () => {
             })
             const result = await promise
 
-            assert.deepEqual(result, new Error(`Unable to locate requested storage context for this user -- Storage context doesn't exist (try force create?)`))
+            assert.deepEqual(result, new Error(`Unable to locate requested storage context (${CONFIG.CONTEXT_NAME}) for this DID (${did}) -- Storage context doesn't exist (try force create?)`))
         })
 
         it(`can force open a user storage context that doesn't exist when authenticated`, async function() {

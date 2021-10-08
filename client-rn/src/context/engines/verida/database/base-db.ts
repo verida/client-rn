@@ -1,31 +1,30 @@
 const EventEmitter = require('events')
 const _ = require('lodash')
-const jsSHA = require("jssha")
-const uuidv1 = require('uuid/v1')
+import { v1 as uuidv1 } from 'uuid'
+import * as jsSHA from "jssha"
 
 import { VeridaDatabaseConfig } from "./interfaces"
-import Database from '../../database'
-import { PermissionsConfig } from '../../interfaces'
+import Database from '../../../database'
+import { PermissionsConfig } from '../../../interfaces'
 import { StorageLink } from '@verida/storage-link'
 import DatastoreServerClient from "./client"
 import Utils from './utils'
-import { Keyring } from '@verida/keyring'
+import { Context } from '../../../..'
+import { DbRegistryEntry } from '../../../db-registry'
 
 export default class BaseDb extends EventEmitter implements Database {
 
     protected databaseName: string
     protected did: string
-    protected storageContext: string
     protected dsn: string
+    protected storageContext: string
 
-    protected keyring?: Keyring
     protected permissions?: PermissionsConfig
     protected isOwner?: boolean
 
-    protected signKeyring?: Keyring
-    protected signDid?: string
-    protected signContextName?: string
+    protected signContext: Context
     protected signData?: boolean
+    protected signContextName: string
 
     protected databaseHash: string
     
@@ -38,38 +37,35 @@ export default class BaseDb extends EventEmitter implements Database {
         super()
         this.client = config.client
         this.databaseName = config.databaseName
-        this.did = config.did.toLocaleUpperCase()
-        this.storageContext = config.storageContext // used for signing
+        this.did = config.did.toLowerCase()
         this.dsn = config.dsn
-        this.isOwner = config.isOwner
+        this.storageContext = config.storageContext
 
-        // Keyring for the user will be the user who owns this database
-        // Will be null if the current user isn't the owner
-        // (ie: for a public / external database)
-        this.keyring = config.keyring
+        this.isOwner = config.isOwner
+        this.signContext = config.signContext
 
         // Signing user will be the logged in user
-        this.signDid = config.signDid
+        const account = this.signContext.getAccount()
 
         this.signData = config.signData === false ? false : true
-        this.signContextName = config.signContextName ? config.signContextName : this.storageContext
+        this.signContextName = this.signContext.getContextName()
 
-        this.config = _.merge({}, config);
+        this.config = _.merge({}, config)
 
         this.permissions = _.merge({
             read: "owner",
             write: "owner",
             readList: [],
             writeList: []
-        }, this.config.permissions ? this.config.permissions : {});
+        }, this.config.permissions ? this.config.permissions : {})
 
         this.readOnly = this.config.readOnly ? true : false;
 
-        this.databaseHash = this.buildDatabaseHash();
+        this.databaseHash = this.buildDatabaseHash()
         this.db = null;
     }
 
-    // DID + AppName + DB Name + readPerm + writePerm
+    // DID + context name + DB Name + readPerm + writePerm
     private buildDatabaseHash() {
         let text = [
             this.did,
@@ -79,12 +75,12 @@ export default class BaseDb extends EventEmitter implements Database {
 
         const hash = this.buildHash(text)
 
-        // Database name in CouchDB must start with a letter, so pre-pend a `v`
+        // Database name in CouchDB must start with a letter, so prepend a `v`
         return "v" + hash
     }
 
-    private buildHash(text: string) {
-        const jsHash = new jsSHA('SHA-256', 'TEXT')
+    protected buildHash(text: string) {
+        const jsHash = new jsSHA.default('SHA-256', 'TEXT')
         jsHash.update(text)
         return jsHash.getHash('HEX')
     }
@@ -140,7 +136,7 @@ export default class BaseDb extends EventEmitter implements Database {
                     data._rev = existingDoc._rev
                     insert = false
                 }
-            } catch (err) {
+            } catch (err: any) {
                 // Record may not exist, which is fine
                 if (err.name != "not_found") {
                     throw err
@@ -227,7 +223,7 @@ export default class BaseDb extends EventEmitter implements Database {
             return raw ? docs : docs.docs
         }
 
-        return;
+        return
     }
 
     public async delete(doc: any, options: any = {}) {
@@ -250,6 +246,20 @@ export default class BaseDb extends EventEmitter implements Database {
         return this.save(doc, options)
     }
 
+    public async deleteAll(): Promise<void> {
+        let rows: any = await this.getMany()
+        if (rows.length == 0) {
+            return
+        }
+
+        let rowId: any
+        for (rowId in rows) {
+            await this.delete(rows![rowId]['_id'])
+        }
+
+        await this.deleteAll()
+    }
+
     public async get(docId: string, options: any = {}) {
         await this.init()
 
@@ -262,16 +272,16 @@ export default class BaseDb extends EventEmitter implements Database {
     /**
      * Bind to changes to this database
      * 
-     * @param {functino} cb Callback function that fires when new data is received
+     * @param {function} cb Callback function that fires when new data is received
      */
-    public async changes(cb: Function) {
+    public async changes(cb: Function, options: any = {}) {
         await this.init()
         
-        const dbInstance = await this.db.getInstance()
-        dbInstance.changes({
+        const dbInstance = await this.getDb()
+        return dbInstance.changes(_.merge({
             since: 'now',
             live: true
-        }).on('change', async function(info: any) {
+        }, options)).on('change', async function(info: any) {
             cb(info)
         })
     }
@@ -284,6 +294,10 @@ export default class BaseDb extends EventEmitter implements Database {
      * Update the users that can access the database
      */
     public async updateUsers(readList: string[] = [], writeList: string[] = []) {
+        throw new Error('Not implemented')
+    }
+
+    public async registryEntry(): Promise<DbRegistryEntry> {
         throw new Error('Not implemented')
     }
 
@@ -328,7 +342,7 @@ export default class BaseDb extends EventEmitter implements Database {
      * @see {@link https://pouchdb.com/api.html#overview|PouchDB documentation}
      * @returns {PouchDB}
      */
-    public async getDb() {
+    public async getDb(): Promise<any> {
         throw new Error('Not implemented')
     }
 
@@ -368,21 +382,22 @@ export default class BaseDb extends EventEmitter implements Database {
      * @todo Think about signing data and versions / insertedAt etc.
      */
     protected async _signData(data: any) {
-        if (!this.keyring) {
-            throw new Error("Unable to sign data. No signing user specified.")
-        }
+        const account = this.signContext.getAccount()
+        const signDid = await account.did()
+        const keyring = await account.keyring(this.signContextName)
 
         if (!data.signatures) {
             data.signatures = {}
         }
 
-        const signContextHash = StorageLink.hash(`${this.signDid}/${this.signContextName}`)
-        const signKey = `${this.signDid}:${signContextHash}`
+    
+        const signContextHash = StorageLink.hash(`${signDid}/${this.signContextName}`)
+        const signKey = `${signDid}:${signContextHash}`
 
         let _data = _.merge({}, data)
         delete _data['signatures']
 
-        data.signatures[signKey] = await this.keyring.sign(_data)
+        data.signatures[signKey] = await keyring.sign(_data)
         return data
     }
 
