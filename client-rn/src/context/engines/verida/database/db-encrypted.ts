@@ -9,8 +9,8 @@ const SQLiteAdapter = SQLiteAdapterFactory(SQLite)
 import * as CryptoPouch from "crypto-pouch"
 import * as PouchDBFind from "pouchdb-find"
 import { VeridaDatabaseConfig } from "./interfaces"
-import { VeridaDatabaseConfig } from "./interfaces"
 import BaseDb from './base-db'
+import DbRegistry, { DbRegistryEntry } from '../../../db-registry'
 
 PouchDB.plugin(HttpPouch)
   .plugin(replication)
@@ -43,13 +43,13 @@ export default class EncryptedDatabase extends BaseDb {
     private _syncError = null
 
     /**
-     * 
-     * @param {*} dbName 
-     * @param {*} dataserver 
-     * @param {string} encryptionKey Uint8Array(32) representing encryption key 
-     * @param {*} remoteDsn 
-     * @param {*} did 
-     * @param {*} permissions 
+     *
+     * @param {*} dbName
+     * @param {*} dataserver
+     * @param {string} encryptionKey Uint8Array(32) representing encryption key
+     * @param {*} remoteDsn
+     * @param {*} did
+     * @param {*} permissions
      */
     //constructor(dbHumanName: string, dbName: string, dataserver: any, encryptionKey: string | Buffer, remoteDsn: string, did: string, permissions: PermissionsConfig) {
     constructor(config: VeridaDatabaseConfig, dbRegistry: DbRegistry) {
@@ -75,7 +75,7 @@ export default class EncryptedDatabase extends BaseDb {
         this._localDb = new PouchDBCrypt(this.databaseHash, {
             adapter: 'react-native-sqlite'
         })
-        
+
         // Generate an encryption password from the encryption key
         const password = this.password = Buffer.from(this.encryptionKey).toString('hex')
 
@@ -93,11 +93,11 @@ export default class EncryptedDatabase extends BaseDb {
         this._remoteDbEncrypted = new PouchDB(this.dsn + this.databaseHash, {
             skip_setup: true
         })
-        
+
         let info
         try {
             info = await this._remoteDbEncrypted.info()
-      
+
             if (info.error && info.error == "not_found") {
                 // Remote dabase wasn't found, so attempt to create it
                 await this.createDb()
@@ -139,12 +139,12 @@ export default class EncryptedDatabase extends BaseDb {
                 // Commence two-way, continuous, retrivable sync
                 instance.sync()
             })
-        
+
         this.db = this._localDb
 
         /**
          * We attempt to fetch some rows from the database.
-         * 
+         *
          * If there is data in this database, it ensures the current encryption key
          * can decrypt the data.
          */
@@ -166,10 +166,10 @@ export default class EncryptedDatabase extends BaseDb {
 
     /**
      * Restarts the remote database syncing
-     * 
+     *
      * This will clear all sync event listeners.
      * It will retain event listeners on the actual database (subscribed via `changes()`)
-     * 
+     *
      * @returns PouchDB Sync object
      */
     public sync() {
@@ -188,7 +188,7 @@ export default class EncryptedDatabase extends BaseDb {
             // Dont sync design docs
             filter: function(doc: any) {
                 return doc._id.indexOf('_design') !== 0;
-            } 
+            }
         }).on("error", function(err: any) {
             instance._syncError = err
             console.error(`Unknown error occurred syncing with remote database: ${databaseName} (${dsn})`)
@@ -203,18 +203,18 @@ export default class EncryptedDatabase extends BaseDb {
 
     /**
      * Subscribe to sync events
-     * 
+     *
      * See https://pouchdb.com/api.html#sync
-     * 
+     *
      * ie:
-     * 
+     *
      * ```
      * const listener = database.onSync('error', (err) => { console.log(err) })
      * listener.cancel()
      * ```
-     * 
-     * @param event 
-     * @param handler 
+     *
+     * @param event
+     * @param handler
      */
     public onSync(event: string, handler: Function) {
         if (!this._sync) {
@@ -226,7 +226,7 @@ export default class EncryptedDatabase extends BaseDb {
 
     /**
      * Close a database.
-     * 
+     *
      * This will remove all event listeners.
      */
     public async close() {

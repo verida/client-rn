@@ -12,8 +12,6 @@ PouchDB
     .plugin(mapreduce)
     .plugin(PouchDBFind)
 
-import BaseDb from './base-db'
-
 export default class PublicDatabase extends BaseDb {
 
     //constructor(dbHumanName: string, dbName: string, dataserver: any, did: string, permissions: PermissionsConfig, isOwner: boolean) {
@@ -23,11 +21,11 @@ export default class PublicDatabase extends BaseDb {
         if (this._remoteDb) {
             return
         }
-        
+
         await super.init()
 
         const databaseName = this.databaseName
-        
+
         this._remoteDb = new PouchDB(this.dsn + this.databaseHash, {
             skip_setup: true
         })
@@ -81,7 +79,7 @@ export default class PublicDatabase extends BaseDb {
 
     public async registryEntry(): Promise<DbRegistryEntry> {
         await this.init()
-        
+
         return {
             dbHash: this.databaseHash,
             dbName: this.databaseName,
