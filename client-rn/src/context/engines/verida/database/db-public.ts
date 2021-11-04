@@ -70,8 +70,7 @@ export default class PublicDatabase extends BaseDb {
             dsn: this.dsn,
             storageContext: this.storageContext,
             databaseName: this.databaseName,
-            databaseHash: this.databaseHash,
-            remoteDb: this.db._remoteDb
+            databaseHash: this.databaseHash
         }
 
         return info
