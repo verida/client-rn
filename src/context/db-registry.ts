@@ -3,7 +3,7 @@ import Database from './database'
 import Datastore from './datastore'
 import { PermissionsConfig } from './interfaces'
 const _ = require('lodash')
-import * as jsSHA from "jssha"
+import EncryptionUtils from '@verida/encryption-utils'
 
 export interface DbRegistryEntryEncryptionKey {
     key: string,
@@ -92,8 +92,7 @@ export default class DbRegistry {
 
     public async get(dbName: string, did: string, contextName: string): Promise<any> {
         await this.init()
-
-        let dbId = this.buildDatabaseId(dbName, did, contextName)
+        const dbId = this.buildDatabaseId(dbName, did, contextName)
 
         try {
             return await this.dbStore!.get(dbId)
@@ -108,15 +107,13 @@ export default class DbRegistry {
     }
 
     private buildDatabaseId(dbName: string, did: string, contextName: string): string {
-        const jsHash = new jsSHA.default('SHA-256', 'TEXT')
         const text = [
-            did,
+            did.toLowerCase(),
             contextName,
             dbName
         ].join("/")
 
-        jsHash.update(text)
-        return jsHash.getHash('HEX')
+        return 'v' + EncryptionUtils.hash(text).substr(2)
     }
 
     /*
@@ -129,7 +126,7 @@ export default class DbRegistry {
             return
         }
         
-        this.dbStore = await this.context.openDatastore('https://schemas.verida.io/storage/database/v0.2/schema.json', {
+        this.dbStore = await this.context.openDatastore('https://core.schemas.verida.io/storage/database/v0.1.0/schema.json', {
             saveDatabase: false
         })
     }

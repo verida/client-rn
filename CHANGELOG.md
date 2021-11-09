@@ -1,4 +1,20 @@
 
+2021-11-09 (v1.1.4)
+-------------------
+
+- Update code base to use new schema URLs (core, common, vault)
+- Update schemas to expect `draft-2020-12` JSON schemas (uses latest AJV version 8)
+
+2021-10-27 (v1.1.0)
+-------------------
+
+- Large refactor to use [Verida DID Server](https://github.com/verida/did-server) and Ethereum compatible key structure
+
+2021-10-08 (v1.0.8)
+-------------------
+
+- Fix critical issue with public databases being added to local database registry
+
 2021-10-08 (v1.0.7)
 -------------------
 

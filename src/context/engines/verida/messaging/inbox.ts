@@ -1,11 +1,11 @@
 import { box } from "tweetnacl"
 const didJWT = require("did-jwt")
 const EventEmitter = require("events")
-const bs58 = require('bs58')
 
 import { Keyring } from '@verida/keyring'
 import { PermissionOptionsEnum } from '../../../interfaces'
 import Context from "../../../context"
+import EncryptionUtils from "@verida/encryption-utils"
 
 export default class VeridaInbox extends EventEmitter {
 
@@ -52,8 +52,8 @@ export default class VeridaInbox extends EventEmitter {
         // Build the shared key using this user's private asymmetric key
         // and the user supplied public key
         const keys = await this.keyring.getKeys()
-        let publicKeyBytes = bs58.decode(inboxItem.key)
-        let sharedKeyEnd = box.before(publicKeyBytes, keys.asymPrivateKey)
+        const publicKeyBytes = EncryptionUtils.hexToBytes(inboxItem.key)
+        const sharedKeyEnd = box.before(publicKeyBytes, keys.asymPrivateKey)
 
         // Decrypt the inbox/tem to obtain the JWT
         let jwt;
@@ -61,7 +61,7 @@ export default class VeridaInbox extends EventEmitter {
             jwt = await this.keyring.asymDecrypt(inboxItem.content, sharedKeyEnd)
         } catch (err) {
             //console.error("Unable to decrypt inbox item")
-            //console.log(this.context, inboxItem.key, publicKeyBytes)
+            await this.publicInbox.delete(inboxItem)
             return
         }
 
@@ -132,10 +132,7 @@ export default class VeridaInbox extends EventEmitter {
                 return
             }
 
-            const inboxItem = await inbox.getItem(info.id, {
-                rev: info.changes[0].rev
-            })
-            await inbox.processItem(inboxItem)
+            await inbox.processAll()
         }).on('denied', function(err: any) {
             console.error('Inbox sync denied')
             console.error(err)
@@ -146,9 +143,11 @@ export default class VeridaInbox extends EventEmitter {
             setTimeout(() => {
                 console.log('Retrying to establish public inbox connection')
                 inbox.watch()
-            }, 10000)
+            }, 1000)
             
         }); // Setup watching for any changes to the local private inbox (ie: marking an item as read)
+
+        this.processAll()
     }
 
     public async watchPrivateChanges() {
@@ -169,7 +168,7 @@ export default class VeridaInbox extends EventEmitter {
             setTimeout(() => {
                 console.log('Retrying to establish private inbox connection')
                 inbox.watchPrivateChanges()
-            }, 10000)
+            }, 1000)
         });
     }
 
@@ -182,14 +181,14 @@ export default class VeridaInbox extends EventEmitter {
         }
 
         this.initComplete = true
-        this.publicInbox = await this.context.openDatastore("https://schemas.verida.io/inbox/item/schema.json", {
+        this.publicInbox = await this.context.openDatastore("https://core.schemas.verida.io/inbox/item/v0.1.0/schema.json", {
             permissions: {
                 read: PermissionOptionsEnum.PUBLIC,
                 write: PermissionOptionsEnum.PUBLIC
             }
         })
 
-        this.privateInbox = await this.context.openDatastore("https://schemas.verida.io/inbox/entry/schema.json", {
+        this.privateInbox = await this.context.openDatastore("https://core.schemas.verida.io/inbox/entry/v0.1.0/schema.json", {
             permissions: {
                 read: PermissionOptionsEnum.OWNER,
                 write: PermissionOptionsEnum.OWNER
@@ -216,7 +215,7 @@ export default class VeridaInbox extends EventEmitter {
         const items = await privateInbox.getMany({
             read: true                  // Only delete read inbox items
         }, {
-            skip: this._maxItems,
+            skip: this.maxItems,
             sort: [{ sentAt: 'desc' }]  // Delete oldest first
         })
 
