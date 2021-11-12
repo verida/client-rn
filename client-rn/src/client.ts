@@ -19,7 +19,7 @@ export default class Client {
 
     /**
      * Connection URL to the ceramic network.
-     * 
+     *
      * Defaults to Ceramic testnet. Specify custom URL via `ClientConfig` in the constructor.
      */
     public didClient: DIDClient
@@ -34,7 +34,7 @@ export default class Client {
 
     /**
      * Create a client connection to the Verida network
-     * 
+     *
      * @param userConfig ClientConfig Configuration for establishing a connection to the Verida network
      */
     constructor(userConfig: ClientConfig = {}) {
@@ -50,10 +50,10 @@ export default class Client {
 
     /**
      * Connect an Account to this client.
-     * 
+     *
      * Sets the account owner who can then create storage contexts,
      * authenticate with databases, send messages etc.
-     * 
+     *
      * @param account AccountInterface
      */
     public async connect(account: Account) {
@@ -68,7 +68,7 @@ export default class Client {
 
     /**
      * Check if an account is connected to this client.
-     * 
+     *
      * @returns boolean True of an account is connected
      */
     public isConnected() {
@@ -77,7 +77,7 @@ export default class Client {
 
     /**
      * Open a storage context for the current account.
-     * 
+     *
      * @param contextName string Name of the `context` to open.
      * @param forceCreate boolean If the `context` doesn't already exist for the connected account, create it. Depending on the type of `Account` connected, this may open a prompt for the user to confirm (and sign).
      * @returns Context | undefined
@@ -125,11 +125,11 @@ export default class Client {
 
     /**
      * Get the storage configuration of an application context for a given DID.
-     * 
+     *
      * This provides the public details about the database, storage and messaging endpoints stored on Ceramic / IDX for the requested `did`.
-     * 
-     * @param did 
-     * @param contextName 
+     *
+     * @param did
+     * @param contextName
      * @returns SecureContextConfig | undefined
      */
     public async getContextConfig(did: string, contextName: string): Promise<Interfaces.SecureContextConfig | undefined> {
@@ -138,31 +138,31 @@ export default class Client {
 
     /**
      * Open the public profile of any user in read only mode.
-     * 
+     *
      * Every application context has the ability to have it's own public profiles.
-     * 
+     *
      * You most likely want to request the `Verida: Vault` context.
-     * 
-     * @param did 
-     * @param contextName 
+     *
+     * @param did
+     * @param contextName
      * @returns <Profile | undefined>
      */
-    public async openPublicProfile(did: string, contextName: string): Promise<Profile | undefined> {
+    public async openPublicProfile(did: string, contextName: string, profileName: string = "basicProfile"): Promise<Profile | undefined> {
         const context = await this.openExternalContext(contextName, did)
         if (!context) {
             throw new Error(`Account does not have a public profile for ${contextName}`)
         }
 
-        return context!.openProfile("public", did, false)
+        return context!.openProfile(profileName, did, false)
     }
 
     /**
      * Get the valid data signatures for a given database record.
-     * 
+     *
      * Iterates through all the signatures attached to a database record and validates each signature.
-     * 
+     *
      * Only returns the signatures that are valid.
-     * 
+     *
      * @param data A single database record
      * @param did An optional did to filter the results by
      * @returns string[] Array of DIDs that have validly signed the data
@@ -193,7 +193,7 @@ export default class Client {
                 if (!didDocument) {
                     continue
                 }
-                
+
                 const validSig = didDocument.verifyContextSignature(_data, signerContextHash, signature, true)
 
                 if (validSig) {
@@ -207,7 +207,7 @@ export default class Client {
 
     /**
      * Get a Schama instance by URL.
-     * 
+     *
      * @param schemaUri URL of the schema
      * @returns Schema A schema object
      */
