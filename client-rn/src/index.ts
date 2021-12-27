@@ -5,6 +5,7 @@ import Context from './context/context'
 import Messaging from './context/messaging'
 import * as ContextInterfaces from './context/interfaces'
 import { EnvironmentType } from "@verida/account"
+import * as Utils from './utils'
 
 export {
     Client,
@@ -12,5 +13,6 @@ export {
     Network,
     Messaging,
     ContextInterfaces,
-    EnvironmentType
+    EnvironmentType,
+    Utils
 }
