@@ -1,7 +1,7 @@
 
 # Developer notes
 
-## Configuraetion
+## Configuration
 
 This repo is a fork of `@verida/client-ts`. It uses git subtree's to merge the latest changes as required (see below).
 
