@@ -99,7 +99,7 @@ export class Profile extends EventEmitter {
    * @param filter
    * @param {object} [options] Database options that will be passed through to [PouchDB.find()](https://pouchdb.com/api.html#query_index)
    */
-  public async getMany(filter: any, options: any): Promise<any> {
+  public async getMany(): Promise<any> {
     return this.getRecord();
   }
 

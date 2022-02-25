@@ -265,8 +265,10 @@ class Context {
       did = await this.account.did();
       ownAccount = true;
     }
-
-    return new Profile(this, did!, profileName, ownAccount);
+    const profileDetails = new Profile(this, did!, profileName, ownAccount);
+    const prof = await profileDetails.getMany()
+    profileDetails.data = prof
+    return profileDetails
   }
 
   /**
@@ -303,7 +305,7 @@ class Context {
     if (config.saveDatabase !== false) {
       await this.dbRegistry.saveDb(database, false);
     }
-
+    
     return database;
   }
 
