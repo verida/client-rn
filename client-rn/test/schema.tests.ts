@@ -48,8 +48,20 @@ describe('Schema tests', () => {
                 email: 'john@smith.com',
                 schema: SCHEMA_CONTACTS
             }
+
             const validate2 = await schema.validate(contact)
-            assert.ok(validate2 === true, 'Data correctly marked as valid')            
+            assert.ok(validate2 === true, 'Data correctly marked as valid')    
+            
+            const contact2 = {
+                firstName: 'John',
+                lastName: 'Smith',
+                email: 'johnsmith.com',
+                schema: SCHEMA_CONTACTS
+            }
+
+            const validate3 = await schema.validate(contact2)
+            assert.ok(validate3 === false, 'Data correctly marked as invalid')
+            assert.ok(schema.errors.length && schema.errors[0].message == `must match format "email"`, 'Email correctly marked as invalid')
         })
 
         it('can get appearance', async function() {
@@ -59,6 +71,21 @@ describe('Schema tests', () => {
             const appearance = await schema.getAppearance()
             assert.ok(appearance, 'Appearance loaded')
             assert.ok(appearance.style, 'Appearance has style metadata')
+        })
+
+        it('can generate versionless scheams', async function() {
+            const TESTS = [
+                ['https://common.schemas.verida.io/social/contact/latest/schema.json', 'https://common.schemas.verida.io/social/contact/schema.json'],
+                ['https://common.schemas.verida.io/social/contact/v0.1.0/schema.json', 'https://common.schemas.verida.io/social/contact/schema.json'],
+                ['https://common.schemas.verida.io/social/contact/schema.json', 'https://common.schemas.verida.io/social/contact/schema.json'],
+                ['https://common.schemas.verida.io/health/fhir/4.0.1/schema.json', 'https://common.schemas.verida.io/health/fhir/4.0.1/schema.json'],
+                ['https://common.schemas.verida.io/health/fhir/4.0.1/Patient/v0.1.0/schema.json', 'https://common.schemas.verida.io/health/fhir/4.0.1/Patient/schema.json'],
+            ]
+
+            for (var testId in TESTS) {
+                const TEST = TESTS[testId]
+                assert.equal(Schema.getVersionlessSchemaName(TEST[0]), TEST[1], `Versionless schema for "${TEST[0]}" is "${TEST[1]}"`)
+            }
         })
     })
 
