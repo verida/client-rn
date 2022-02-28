@@ -13,33 +13,26 @@ export default class NotificationEngineVerida implements BaseNotification {
 
     constructor(context: Context, serverUrl: string) {
         this.context = context
-        this.serverUrl = serverUrl
+        this.serverUrl = serverUrl.endsWith("/") ? serverUrl : serverUrl + "/";
+    }
+    
+    public async init(): Promise<void> {
+        // Do nothing. No initialisation is required for this implementation.
+        return
     }
 
     /**
-     * Initialize notifications for the connected user
-     *
-     * (ie; connect to a notification server)
-     */
-    public async init(): Promise<void> {
-        this.did = (await this.context.getAccount().did()).toLowerCase()
-     }
-
-     /**
-      * Ping a notification server to fetch new messages
-      */
-    public async ping(config?: MessageSendConfig): Promise<boolean> {
-        await this.init();
+    * Ping a notification server to fetch new messages
+    */
+    public async ping(recipientContextName: string, didToNotify: any): Promise<boolean> {
         const server = await this.getAxios();
-        
-        let context = config ? config.recipientContextName || this.context.getContextName() : this.context.getContextName();
-        let did = config ? config.did || this.did! : this.did!;
+
         try {
             // Returns the client context and the corresponding `DID`
             await server.post(this.serverUrl + 'ping', {
                 data: {
-                    did: did,
-                    context: context
+                    did: didToNotify,
+                    context: recipientContextName
                 }
             })
         } catch (err: any) {
@@ -48,7 +41,7 @@ export default class NotificationEngineVerida implements BaseNotification {
         }
 
         return true
-     }
+    }
 
     public getErrors(): string[] {
         return this.errors
@@ -62,12 +55,24 @@ export default class NotificationEngineVerida implements BaseNotification {
             },
         }
 
+        if (!this.did) {
+            const account = this.context.getAccount()
+
+            if (!account) {
+                throw new Error("Unable to locate account in Notification engine.")
+            }
+            
+            this.did = await account.did()
+        }
+
         // Authenticate using the DID and a signed consent message
         const keyring = await this.context.getAccount().keyring(contextName)
-        const signature = await keyring.sign(`Access the notification service using context: "${contextName}"?\n\n${this.did!}`)
+        const did = this.did!.toLowerCase()
+        const message = `Access the notification service using context: "${contextName}"?\n\n${did}`
+        const signature = await keyring.sign(message)
 
         config["auth"] = {
-            username: this.did!.replace(/:/g, "_"),
+            username: did.replace(/:/g, "_"),
             password: signature,
         }
 
