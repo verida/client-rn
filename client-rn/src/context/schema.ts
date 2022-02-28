@@ -33,7 +33,7 @@ class Schema {
   protected specification?: any;
   protected validateFunction?: any;
 
-  protected static schemaPaths?: string[];
+  protected static schemaPaths?: Record<string, string>;
   protected static schemas: any = {};
 
   /**
@@ -77,11 +77,11 @@ class Schema {
     return Schema.schemas[schemaName];
   }
 
-  public static setSchemaPaths(schemaPaths: string[]): void {
+  public static setSchemaPaths(schemaPaths: Record<string, string>): void {
     Schema.schemaPaths = schemaPaths;
   }
 
-  public static getSchemaPaths(): string[] {
+  public static getSchemaPaths(): Record<string, string> {
     return Schema.schemaPaths!;
   }
 
@@ -255,6 +255,24 @@ class Schema {
     });
 
     return jsonCache[uri];
+  }
+
+  /**
+   * Checks a version specified in schemaName
+   * 
+   * SchemaName example  :-  https://core.schemas.verida.io/base/v0.1.0/schema.json
+   * SchemaName format :- https://{protocol-name}/{name}/{v}{version}/name.json
+   * @param schemaName 
+   * @returns schemaName without the version
+   */  
+  public static getVersionlessSchemaName(schemaName: string): string {
+    const schemaParts = schemaName.match(/(.*)\/((v[0-9\.]*)|latest)\/schema.json$/)
+    if (!schemaParts) {
+      return schemaName
+    }
+
+    const schemaLess = `${schemaParts[1]}/schema.json`
+    return schemaLess
   }
 }
 
