@@ -75,12 +75,9 @@
     "vm-browserify": "0.0.4"
   },
   "devDependencies": {
-<<<<<<< HEAD
     "@types/base-64": "^1.0.0",
     "@types/lodash": "^4.14.179",
     "@types/node": "^16.7.12",
-=======
->>>>>>> 29dbc8915201a34a82af3052bc7a9f4d5342886c
     "@types/crypto-pouch": "^4.0.1",
     "@types/mocha": "^9.1.1",
     "@types/pouchdb": "^6.4.0",
