@@ -21,7 +21,6 @@ PouchDB.plugin(HttpPouch)
   .plugin(PouchDBFind)
   .plugin(SQLiteAdapter)
 
-
 PouchDBCrypt
   .plugin(HttpPouch)
   .plugin(replication)
@@ -54,7 +53,6 @@ class EncryptedDatabase extends BaseDb {
    * @param {*} did
    * @param {*} permissions
    */
-  //constructor(dbHumanName: string, dbName: string, dataserver: any, encryptionKey: string | Buffer, remoteDsn: string, did: string, permissions: PermissionsConfig) {
   constructor(config: VeridaDatabaseConfig, engine: StorageEngineVerida) {
     super(config, engine);
 
@@ -96,17 +94,15 @@ class EncryptedDatabase extends BaseDb {
     this._remoteDbEncrypted = new PouchDB(`${this.dsn}/${this.databaseHash}`, {
       skip_setup: true,
       fetch: async function(url: string, opts: any) {
-        console.log('dbencrypted fetch()')
         opts.headers.set('Authorization', `Bearer ${instance.getAccessToken()}`)
-        const result = await fetch(url, opts)
-        console.log('result', result)
+        const result = await PouchDB.fetch(url, opts)
         if (result.status == 401) {
           // Unauthorized, most likely due to an invalid access token
           // Fetch new credentials and try again
           await instance.getEngine().reAuth(instance)
 
           opts.headers.set('Authorization', `Bearer ${instance.getAccessToken()}`)
-          const result = await fetch(url, opts)
+          const result = await PouchDB.fetch(url, opts)
 
           if (result.status == 401) {
             throw new Error(`Permission denied to access server: ${this.dsn}`)
