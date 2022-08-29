@@ -8,10 +8,12 @@ import SQLiteAdapterFactory from 'pouchdb-adapter-react-native-sqlite'
 const SQLiteAdapter = SQLiteAdapterFactory(SQLite)
 import * as CryptoPouch from "crypto-pouch"
 import * as PouchDBFind from "pouchdb-find"
-import { VeridaDatabaseConfig } from "./interfaces"
-import BaseDb from './base-db'
-import DbRegistry, { DbRegistryEntry } from '../../../db-registry'
-import EncryptionUtils from "@verida/encryption-utils"
+
+import { VeridaDatabaseConfig } from "./interfaces";
+import BaseDb from "./base-db";
+import { DbRegistryEntry } from "../../../db-registry";
+import StorageEngineVerida from "./engine"
+import EncryptionUtils from "@verida/encryption-utils";
 
 PouchDB.plugin(HttpPouch)
   .plugin(replication)
@@ -28,8 +30,6 @@ PouchDBCrypt
   .plugin(SQLiteAdapter)
   .plugin(CryptoPouch)
 
-//db = new EncryptedDatabase(databaseName, did, this.dsn!, encryptionKey, config.permissions)
-
 /**
  * @category
  * Modules
@@ -38,7 +38,6 @@ class EncryptedDatabase extends BaseDb {
   protected encryptionKey: Buffer;
   protected password?: string;
 
-  private dbRegistry: DbRegistry;
   private _sync: any;
   private _localDbEncrypted: any;
   private _localDb: any;
@@ -56,11 +55,11 @@ class EncryptedDatabase extends BaseDb {
    * @param {*} permissions
    */
   //constructor(dbHumanName: string, dbName: string, dataserver: any, encryptionKey: string | Buffer, remoteDsn: string, did: string, permissions: PermissionsConfig) {
-  constructor(config: VeridaDatabaseConfig, dbRegistry: DbRegistry) {
-    super(config);
+  constructor(config: VeridaDatabaseConfig, engine: StorageEngineVerida) {
+    super(config, engine);
 
-    this.dbRegistry = dbRegistry;
     this.encryptionKey = config.encryptionKey!;
+    this.token = config.token!;
 
     // PouchDB sync object
     this._sync = null;
@@ -92,8 +91,34 @@ class EncryptedDatabase extends BaseDb {
       // Setting to 1,000 -- Any higher and it takes too long on mobile devices
     });
 
-    this._remoteDbEncrypted = new PouchDB(this.dsn + this.databaseHash, {
+    /* @ts-ignore */
+    const instance = this
+    this._remoteDbEncrypted = new PouchDB(`${this.dsn}/${this.databaseHash}`, {
       skip_setup: true,
+      fetch: async function(url: string, opts: any) {
+        console.log('dbencrypted fetch()')
+        opts.headers.set('Authorization', `Bearer ${instance.getAccessToken()}`)
+        const result = await fetch(url, opts)
+        console.log('result', result)
+        if (result.status == 401) {
+          // Unauthorized, most likely due to an invalid access token
+          // Fetch new credentials and try again
+          await instance.getEngine().reAuth(instance)
+
+          opts.headers.set('Authorization', `Bearer ${instance.getAccessToken()}`)
+          const result = await fetch(url, opts)
+
+          if (result.status == 401) {
+            throw new Error(`Permission denied to access server: ${this.dsn}`)
+          }
+
+          // Return an authorized result
+          return result
+        }
+
+        // Return an authorized result
+        return result
+      }
     });
 
     let info;
@@ -119,6 +144,7 @@ class EncryptedDatabase extends BaseDb {
 
     const databaseName = this.databaseName;
     const dsn = this.dsn;
+    /* @ts-ignore */
     const instance = this;
 
     // Do a once off sync to ensure the local database pulls all data from remote server
@@ -269,10 +295,10 @@ class EncryptedDatabase extends BaseDb {
     };
 
     try {
-      this.client.updateDatabase(this.did, this.databaseHash, options);
+      this.client.updateDatabase(this.did, this.databaseName, options);
 
       if (this.config.saveDatabase !== false) {
-        await this.dbRegistry.saveDb(this);
+        await this.engine.getDbRegistry().saveDb(this);
       }
     } catch (err: any) {
       throw new Error("User doesn't exist or unable to create user database");

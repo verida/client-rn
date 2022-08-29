@@ -1,4 +1,4 @@
-import { Account } from "@verida/account";
+import { Account, AuthContext, AuthType, AuthTypeConfig } from "@verida/account";
 import { Interfaces } from "@verida/storage-link";
 
 import BaseStorageEngine from "./engines/base";
@@ -149,11 +149,12 @@ class Context {
         `Unsupported database engine type specified: ${engineType}`
       );
     }
+
     const engine = DATABASE_ENGINES[engineType]; // @todo type cast correctly
     const databaseEngine = new engine(
       this.contextName,
       this.dbRegistry,
-      contextConfig.services.databaseServer.endpointUri
+      contextConfig
     );
 
     /**
@@ -342,8 +343,9 @@ class Context {
       config
     );
 
-    config.saveDatabase = false;
+    config.isOwner = false;
 
+    config.saveDatabase = false;
     if (config.contextName && config.contextName != this.contextName) {
       // We are opening a database for a different context.
       // Open the new context
@@ -358,7 +360,6 @@ class Context {
     }
 
     const databaseEngine = await this.getDatabaseEngine(did);
-
     return databaseEngine.openDatabase(databaseName, config);
   }
 
@@ -411,6 +412,17 @@ class Context {
 
   public getDbRegistry(): DbRegistry {
     return this.dbRegistry;
+  }
+
+  public async getAuthContext(authConfig?: AuthTypeConfig, authType?: string): Promise<AuthContext> {
+    if (!this.account) {
+      throw new Error("No authenticated user");
+    }
+
+    const did = await this.account!.did()
+    const contextConfig = await this.getContextConfig(did, false)
+
+    return this.account!.getAuthContext(this.contextName, contextConfig, authConfig, authType)
   }
 }
 

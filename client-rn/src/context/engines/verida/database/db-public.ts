@@ -17,7 +17,6 @@ PouchDB
  * Modules
  */
 class PublicDatabase extends BaseDb {
-  //constructor(dbHumanName: string, dbName: string, dataserver: any, did: string, permissions: PermissionsConfig, isOwner: boolean) {
   private _remoteDb: any;
 
   public async init() {
@@ -28,10 +27,37 @@ class PublicDatabase extends BaseDb {
     await super.init();
 
     const databaseName = this.databaseName;
-
-    this._remoteDb = new PouchDB(this.dsn + this.databaseHash, {
+    const dbConfig: any = {
       skip_setup: true,
-    });
+    }
+
+    if (this.token) {
+      const instance = this
+      dbConfig['fetch'] = async function(url: string, opts: any) {
+        opts.headers.set('Authorization', `Bearer ${instance.getAccessToken()}`)
+        const result = await PouchDB.fetch(url, opts)
+        if (result.status == 401) {
+          // Unauthorized, most likely due to an invalid access token
+          // Fetch new credentials and try again
+          await instance.getEngine().reAuth(instance)
+
+          opts.headers.set('Authorization', `Bearer ${instance.getAccessToken()}`)
+          const result = await PouchDB.fetch(url, opts)
+
+          if (result.status == 401) {
+            throw new Error(`Permission denied to access server: ${this.dsn}`)
+          }
+
+          // Return an authorized result
+          return result
+        }
+
+        // Return an authorized result
+        return result
+      }
+    }
+
+    this._remoteDb = new PouchDB(`${this.dsn}/${this.databaseHash}`, dbConfig);
 
     try {
       let info = await this._remoteDb.info();
