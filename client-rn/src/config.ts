@@ -1,7 +1,8 @@
+import { EnvironmentType } from "@verida/account"
 import { DefaultClientConfig } from "./interfaces"
 
 const config: DefaultClientConfig = {
-    environment: process.env.VERIDA_ENVIRONMENT || "testnet",
+    environment: <EnvironmentType> process.env.VERIDA_ENVIRONMENT || "testnet",
     environments: {
         local: {
             // For core development
