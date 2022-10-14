@@ -20,7 +20,6 @@ PouchDB.plugin(HttpPouch)
   .plugin(PouchDBFind)
   .plugin(SQLiteAdapter)
 
-
 PouchDBCrypt
   .plugin(HttpPouch)
   .plugin(replication)
