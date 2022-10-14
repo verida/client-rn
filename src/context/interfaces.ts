@@ -17,9 +17,14 @@ export interface DatabaseOpenConfig {
   did?: string;
 
   /**
-   * Specify a specific database connection string to use when opening the database.
+   * Specify a database connection string to use when opening the database.
    */
   dsn?: string;
+
+  /**
+   * Specify a JWT token to use when opening the database.
+   */
+  token?: string;
 
   /**
    * Save this database into the user's master list of opened databases.
@@ -43,7 +48,7 @@ export interface DatabaseOpenConfig {
    *
    * This encryption key will not apply if the database is marked as `public`.
    */
-  encryptionKey?: string;
+  encryptionKey?: Buffer;
 
   /**
    * Create an application context if it doesn't already exist for the connected account.
@@ -59,6 +64,11 @@ export interface DatabaseOpenConfig {
    * Optionally specify the context used to sign data
    */
   signingContext?: Context;
+
+  /**
+   * Ignore any cached instance already created
+   */
+  ignoreCache?: boolean
 }
 
 // @todo: Same as DatabaseOpenConfig
@@ -116,4 +126,5 @@ export interface MessageSendConfig {
   did: string,
   expiry?: Number;
   recipientContextName?: string;
+  openUrl?: string
 }

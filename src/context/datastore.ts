@@ -1,8 +1,7 @@
 const _ = require("lodash");
-import { DatastoreOpenConfig } from "./interfaces";
+import { DatabaseOpenConfig, DatastoreOpenConfig } from "./interfaces";
 import Context from "./context";
 import Schema from "./schema";
-import { DIDDocument } from "@verida/did-document";
 
 /**
  * A datastore wrapper around a given database and schema.
@@ -75,7 +74,7 @@ class Datastore {
    */
   public async save(data: any, options: any = {}): Promise<object | boolean> {
     await this.init();
-    
+
     data.schema = this.schemaPath;
 
     let valid = await this.schema.validate(data);
@@ -219,10 +218,10 @@ class Datastore {
       this.db = await this.context.openExternalDatabase(
         dbName,
         this.config.did!,
-        this.config
+        <DatabaseOpenConfig> this.config
       );
     } else {
-      this.db = await this.context.openDatabase(dbName, this.config);
+      this.db = await this.context.openDatabase(dbName, <DatabaseOpenConfig> this.config);
     }
     let indexes = schemaJson.database.indexes;
 
