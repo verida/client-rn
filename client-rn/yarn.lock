@@ -1169,6 +1169,11 @@
     tweetnacl "^1.0.3"
     uuid "^8.3.2"
 
+"@verida/pouchdb-replication-react-native@^7.0.0-prerelease":
+  version "7.0.0-prerelease"
+  resolved "https://registry.yarnpkg.com/@verida/pouchdb-replication-react-native/-/pouchdb-replication-react-native-7.0.0-prerelease.tgz#a33292678e1a4dcf5243c3dc0bf350035e16832a"
+  integrity sha512-hIUujAz5gYxk2tKSimB9b3tClsuMX61hGkVIU8t0qur8JQyhO8Yl87Ip91c/GChHu0eOUrVYCw9swXj9K+3aag==
+
 "@verida/storage-link@^2.0.0-rc2":
   version "2.0.0-rc2"
   resolved "https://registry.yarnpkg.com/@verida/storage-link/-/storage-link-2.0.0-rc2.tgz#aa251b7b8ac49ec402172da56ea45b754cfe8e92"
