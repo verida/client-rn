@@ -1,5 +1,5 @@
 {
-  "name": "@verida/client-ts",
+  "name": "@verida/client-rn",
   "version": "2.0.0-rc4",
   "main": "dist/index.js",
   "license": "ISC",
