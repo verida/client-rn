@@ -26,3 +26,11 @@ Switch to `verida-js` and delete the newly created branch
 ```
 git branch -D subtree/<version>
 ```
+
+# Creating a release
+
+```
+yarn publish --tag next
+```
+
+Use the tag `next` for an upcoming releaes (ie: RC) and `latest` for the latest release
