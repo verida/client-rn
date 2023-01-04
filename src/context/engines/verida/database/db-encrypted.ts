@@ -42,7 +42,6 @@ class EncryptedDatabase extends BaseDb {
     super(config, engine);
 
     this.encryptionKey = config.encryptionKey!;
-    this.databaseHash = Utils.buildDatabaseHash(this.databaseName, this.storageContext, this.did)
 
     // PouchDB sync object
     this._sync = null;
@@ -53,7 +52,9 @@ class EncryptedDatabase extends BaseDb {
       return;
     }
 
+    const now = (new Date()).getTime()
     await super.init();
+    //console.log(`Db.init-1(${this.databaseName}): ${(new Date()).getTime()-now}`)
 
     this._localDbEncrypted = new PouchDB(this.databaseHash);
     this._localDb = new PouchDBCrypt(this.databaseHash);
@@ -78,6 +79,7 @@ class EncryptedDatabase extends BaseDb {
 
     /* @ts-ignore */
     const instance = this;
+    //console.log(`Db.init-2(${databaseName}): ${(new Date()).getTime()-now}`)
 
     // Do a once off sync to ensure the local database pulls all data from remote server
     // before commencing live syncronisation between the two databases
@@ -101,8 +103,10 @@ class EncryptedDatabase extends BaseDb {
         console.error(err);
       })
       .on("complete", function (info: any) {
+        //console.log(`Db.init-3(${databaseName}): ${(new Date()).getTime()-now}`)
         // Commence two-way, continuous, retrivable sync
         instance.sync();
+        //console.log(`Db.init-4(${databaseName}): ${(new Date()).getTime()-now}`)
       });
 
     /**
@@ -113,6 +117,7 @@ class EncryptedDatabase extends BaseDb {
      */
     try {
       await this.getMany();
+      //console.log(`Db.init-5(${databaseName}): ${(new Date()).getTime()-now}`)
     } catch (err: any) {
       // This error message is thrown by the underlying decrypt library if the
       // data can't be decrypted
@@ -121,6 +126,7 @@ class EncryptedDatabase extends BaseDb {
         err.message == "Could not decrypt!"
       ) {
         // Clear the instantiated PouchDb instances and throw a more useful exception
+        await this.close()
         this._localDb = this._localDbEncrypted = this.db = null;
         throw new Error(`Invalid encryption key supplied`);
       }
@@ -128,6 +134,8 @@ class EncryptedDatabase extends BaseDb {
       // Unknown error, rethrow
       throw err;
     }
+
+    //console.log(`Db.init-Final(${databaseName}): ${(new Date()).getTime()-now}`)
   }
 
   /**
@@ -203,9 +211,22 @@ class EncryptedDatabase extends BaseDb {
    * This will remove all event listeners.
    */
   public async close() {
-    this._sync.cancel();
-    await this._localDbEncrypted.close();
-    await this.db.close();
+    if (this._sync) {
+      this._sync.cancel();
+    }
+
+    try {
+      await this._localDbEncrypted.close();
+    } catch (err) {
+      // may already be closed
+    }
+    
+    try {
+      await this.db.close();
+    } catch (err) {
+      // may already be closed
+    }
+
     this._sync = null;
     this._syncError = null;
   }
@@ -223,9 +244,7 @@ class EncryptedDatabase extends BaseDb {
       permissions: this.permissions,
     };
 
-    for (let i in this.endpoints) {
-      await this.endpoints[i].updateDatabase(this.did, this.databaseName, options);
-    }
+    await this.endpoint.updateDatabase(this.did, this.databaseName, options);
 
     if (this.config.saveDatabase !== false) {
       await this.engine.getDbRegistry().saveDb(this);
@@ -268,16 +287,11 @@ class EncryptedDatabase extends BaseDb {
       };
     }
 
-    const endpoints = []
-    for (let i in this.endpoints) {
-      endpoints.push(this.endpoints[i].toString())
-    }
-
     const info = {
       type: "VeridaDatabase",
       privacy: "encrypted",
       did: this.did,
-      endpoints: endpoints,
+      endpoint: this.endpoint.toString(),
       permissions: this.permissions!,
       storageContext: this.storageContext,
       databaseName: this.databaseName,
@@ -303,6 +317,7 @@ class EncryptedDatabase extends BaseDb {
         type: "x25519-xsalsa20-poly1305",
         key: this.password!,
       },
+      endpoint: this.endpoint.toString()
     };
   }
 }
