@@ -4,6 +4,7 @@ import { ServiceEndpoint } from 'did-resolver'
 import { Account, AuthContext, VeridaDatabaseAuthContext, VeridaDatabaseAuthTypeConfig } from '@verida/account'
 import { Interfaces } from '@verida/storage-link'
 import { EndpointUsage, PermissionsConfig } from "../../../interfaces";
+import StorageEngineVerida from './engine'
 import Utils from "./utils";
 
 import PouchDB from '@craftzdog/pouchdb-core-react-native'
@@ -24,6 +25,7 @@ export default class Endpoint extends EventEmitter {
     private endpointUri: ServiceEndpoint
     private client: DatastoreServerClient
     private contextConfig: Interfaces.SecureContextConfig
+    private storageEngine: StorageEngineVerida
 
     private account?: Account
     private auth?: VeridaDatabaseAuthContext
@@ -31,9 +33,10 @@ export default class Endpoint extends EventEmitter {
     private usePublic: boolean = false
     private databases: Record<string, any> = {}
 
-    constructor(contextName: string, contextConfig: Interfaces.SecureContextConfig, endpointUri: ServiceEndpoint) {
+    constructor(storageEngine: StorageEngineVerida, contextName: string, contextConfig: Interfaces.SecureContextConfig, endpointUri: ServiceEndpoint) {
         super()
 
+        this.storageEngine = storageEngine
         this.contextName = contextName
         this.endpointUri = endpointUri
         this.contextConfig = contextConfig
@@ -50,8 +53,8 @@ export default class Endpoint extends EventEmitter {
         this.usePublic = true
     }
 
-    public toString() {
-        return this.endpointUri
+    public toString(): string {
+        return <string> this.endpointUri
     }
 
     public async connectAccount(account: Account, isOwner: boolean = true) {
@@ -77,18 +80,18 @@ export default class Endpoint extends EventEmitter {
         if (this.auth && !this.usePublic) {
             const instance = this
             dbConfig['fetch'] = async function (url: string, opts: any) {
-                const accessToken = await instance.getAccessToken()
+                let accessToken = await instance.getAccessToken()
                 opts.headers.set('Authorization', `Bearer ${accessToken}`)
-                const result = await PouchDB.fetch(url, opts.headers)
+                let result = await PouchDB.fetch(url, opts)
                 if (result.status == 401) {
                     // Unauthorized, most likely due to an invalid access token
                     // Fetch new credentials and try again
                     await instance.authenticate(isOwner)
 
-                    const accessToken = await instance.getAccessToken()
+                    accessToken = await instance.getAccessToken()
                     opts.headers.set('Authorization', `Bearer ${accessToken}`)
 
-                    const result = await PouchDB.fetch(url, opts)
+                    result = await PouchDB.fetch(url, opts)
 
                     if (result.status == 401) {
                         throw new Error(`Permission denied to access server: ${instance.toString()}`)
@@ -109,9 +112,9 @@ export default class Endpoint extends EventEmitter {
             let info = await db.info();
             if (info.error && info.error == "not_found") {
                 if (isOwner) {
-                    await this.createDb(databaseName, did, permissions);
+                    await this.storageEngine.createDb(databaseName, did, permissions)
                 } else {
-                    throw new Error(`Database not found: ${databaseName}`);
+                    throw new Error(`Database not found: ${databaseName} / ${databaseHash}`);
                 }
             }
 
@@ -120,7 +123,7 @@ export default class Endpoint extends EventEmitter {
             }
         } catch (err: any) {
             if (isOwner) {
-                await this.createDb(databaseName, did, permissions);
+                await this.storageEngine.createDb(databaseName, did, permissions)
             } else {
                 throw new Error(`Database not found: ${err.message}`);
             }
@@ -162,10 +165,12 @@ export default class Endpoint extends EventEmitter {
 
         let auth: AuthContext
         try {
+            //const now = (new Date()).getTime()
             // Attempt to re-authenticate using the refresh token and ignoring the access token (its invalid)
             auth = await this.account!.getAuthContext(this.contextName, this.contextConfig, this.endpointUri, <VeridaDatabaseAuthTypeConfig>{
                 invalidAccessToken: true
             })
+            //console.log(`endpoint.getAuthContext(${this.endpointUri}): ${(new Date()).getTime()-now}`)
         } catch (err: any) {
             if (err.name == 'ContextAuthorizationError') {
                 // The refresh token is invalid
@@ -187,6 +192,10 @@ export default class Endpoint extends EventEmitter {
     public async setAuth(auth: VeridaDatabaseAuthContext) {
         this.auth = auth
         await this.client.setAuthContext(this.auth)
+    }
+
+    public async getStatus() {
+        return this.client.getStatus()
     }
 
     public async getAccessToken() {
@@ -223,21 +232,32 @@ export default class Endpoint extends EventEmitter {
 
             throw new Error(`Unable to update database configuration: ${message}`);
         }
+
+        await this.storageEngine.checkReplication()
     }
 
-  /**
-   * When connecting to a CouchDB server for an external user, the current user may not
-   * have access to read/write.
-   *
-   * Take the external user's `endpointUri` that points to their CouchDB server. Establish
-   * a connection to the Verida Middleware (DatastoreServerClient) as the current user
-   * (accountDid) and create a new account if required.
-   *
-   * Return the current user's DSN which provides authenticated access to the external
-   * user's CouchDB server for the current user.
-   *
-   * @returns {string}
-   */
+    public async checkReplication(databaseName?: string) {
+        try {
+            await this.client.checkReplication(databaseName);
+        } catch (err: any) {
+            const message = err.response ? err.response.data.message : err.message
+            this.storageEngine.emit('endpointWarning',`Replication checks failed on ${this.endpointUri}: ${message}`)
+        }
+    }
+
+    /**
+     * When connecting to a CouchDB server for an external user, the current user may not
+     * have access to read/write.
+     *
+     * Take the external user's `endpointUri` that points to their CouchDB server. Establish
+     * a connection to the Verida Middleware (DatastoreServerClient) as the current user
+     * (accountDid) and create a new account if required.
+     *
+     * Return the current user's DSN which provides authenticated access to the external
+     * user's CouchDB server for the current user.
+     *
+     * @returns {string}
+     */
     protected async buildExternalAuth(): Promise<VeridaDatabaseAuthContext> {
         if (!this.account) {
             throw new Error('Unable to connect to external storage node. No account connected.')
