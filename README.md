@@ -21,11 +21,11 @@ Switch back to this repo and merge:
 git subtree pull -P client-rn client-ts-source subtree/<version> --squash
 ```
 
-Update all dependencies to the latest versions (assuming there's been a new protocol release):
+Update all dependencies to the latest versions (assumes `package.json` has changed):
 
 ```
-yarn remove @verida/xxx
-yarn add @verida/xxx
+cd client-rn
+yarn
 ```
 
 Switch to `verida-js` and delete the newly created branch
@@ -37,6 +37,7 @@ git branch -D subtree/<version>
 # Creating a release
 
 ```
+yarn run build
 yarn publish --tag next
 ```
 
