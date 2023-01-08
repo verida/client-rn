@@ -1,12 +1,11 @@
 import BaseStorageEngine from "../../base";
 import EncryptedDatabase from "./db-encrypted";
 import Database from "../../../database";
-import { DatabaseOpenConfig, PermissionsConfig } from "../../../interfaces";
+import { DatabaseOpenConfig, PermissionsConfig, ContextDatabaseInfo } from "../../../interfaces";
 import { Account } from "@verida/account";
 import PublicDatabase from "./db-public";
 import DbRegistry from "../../../db-registry";
 import { Interfaces } from "@verida/storage-link";
-import EndpointReplicator from "./endpoint-replicator";
 import Context from '../../../context';
 import Endpoint from "./endpoint";
 import { getRandomInt } from "../../../utils";
@@ -20,8 +19,8 @@ const _ = require("lodash");
  */
 
 /**
- * @category
- * Modules
+ * @emits EndpointUnavailable
+ * @emits EndpointWarning
  */
 class StorageEngineVerida extends BaseStorageEngine {
   private accountDid?: string;
@@ -36,14 +35,20 @@ class StorageEngineVerida extends BaseStorageEngine {
   ) {
     super(storageContext, dbRegistry, contextConfig);
 
+    const engine = this
     this.endpoints = {}
     for (let i in contextConfig.services.databaseServer.endpointUri) {
       const endpointUri = <string> contextConfig.services.databaseServer.endpointUri[i]
       this.endpoints[endpointUri] = new Endpoint(this, this.storageContext, this.contextConfig, endpointUri)
+
+      // Catch and re-throw endpoint warnings
+      this.endpoints[endpointUri].on('EndpointWarning', (message) => {
+        engine.emit('EndpointWarning', endpointUri, message)
+      })
     }
   }
 
-  private async locateAvailableEndpoint(endpoints: Record<string, Endpoint>): Promise<Endpoint> {
+  private async locateAvailableEndpoint(endpoints: Record<string, Endpoint>, checkStatus = true): Promise<Endpoint> {
     // Maintain a list of failed endpoints
     const failedEndpoints = []
 
@@ -56,6 +61,10 @@ class StorageEngineVerida extends BaseStorageEngine {
     let primaryEndpointUri = Object.keys(endpoints)[primaryIndex]
     //console.log(`primaryEndpointUri: ${primaryEndpointUri} for ${this.storageContext} / ${this.accountDid}`)
 
+    if (!checkStatus) {
+      return endpoints[primaryEndpointUri]
+    }
+
     while (failedEndpoints.length < Object.keys(endpoints).length) {
       // Verify the endpoint is active
       try {
@@ -67,7 +76,7 @@ class StorageEngineVerida extends BaseStorageEngine {
         return endpoints[primaryEndpointUri]
       } catch (err) {
         // endpoint is not available, so set it to fail
-        this.emit('endpointUnavailable', primaryEndpointUri)
+        this.emit('EndpointUnavailable', primaryEndpointUri)
         failedEndpoints.push(primaryEndpointUri)
         primaryIndex++
         primaryIndex = primaryIndex % Object.keys(endpoints).length
@@ -80,13 +89,17 @@ class StorageEngineVerida extends BaseStorageEngine {
   /**
    * Get an active endpoint
    */
-  protected async getActiveEndpoint() {
+  public async getActiveEndpoint() {
     if (this.activeEndpoint) {
       return this.activeEndpoint
     }
 
     this.activeEndpoint = await this.locateAvailableEndpoint(this.endpoints)
     return this.activeEndpoint
+  }
+
+  public getEndpoint(endpintUri: string): Endpoint {
+    return this.endpoints[endpintUri]
   }
 
   public async connectAccount(account: Account) {
@@ -102,8 +115,23 @@ class StorageEngineVerida extends BaseStorageEngine {
         promises.push(endpoint.connectAccount(account))
       }
 
-      await Promise.all(promises)
+      const results = await Promise.allSettled(promises)
 
+      const finalEndpoints: Record<string, Endpoint> = {}
+      let resultIndex = 0
+      for (let i in this.endpoints) {
+        const endpoint = this.endpoints[i]
+        const result = results[resultIndex++]
+
+        if (result.status == 'fulfilled') {
+          finalEndpoints[i] = endpoint
+        } else {
+          this.emit('EndpointUnavailable', i)
+        }
+      }
+
+      this.endpoints = finalEndpoints
+      this.activeEndpoint = await this.locateAvailableEndpoint(this.endpoints, false)
       this.accountDid = await this.account!.did();
       //console.log(`connectAccount(${this.accountDid}): ${(new Date()).getTime()-now}`)
 
@@ -183,28 +211,44 @@ class StorageEngineVerida extends BaseStorageEngine {
 
     let endpoint: Endpoint
     if (!config.isOwner) {
-      // Not the owner, so need the dsn and token to have been specified in the config
-      if (!config.dsn) {
-        throw new Error(`Unable to determine DSN for this user (${did}) and this context (${contextName})`);
+      // Not the owner, so need the endpoints to have been specified in the config
+      if (!config.endpoints) {
+        throw new Error(`Unable to determine endpoints for this user (${did}) and this context (${contextName})`);
       }
 
-      let endpointUris = <string[]> (typeof(config.dsn) == 'object' ? config.dsn : [<string> config.dsn])
+      let endpointUris = <string[]> (typeof(config.endpoints) == 'object' ? config.endpoints : [<string> config.endpoints])
 
       const endpoints: Record<string, Endpoint> = {}
       for (let i in endpointUris) {
         const endpointUri = <string> endpointUris[i]
-        endpoints[endpointUri] = new Endpoint(this, this.storageContext, this.contextConfig, endpointUri)
+        const endpoint = new Endpoint(this, this.storageContext, this.contextConfig, endpointUri)
 
         // connect account to the endpoint if we are connected
         // @todo: make async for all endpoints
         if (this.account) {
-          await endpoints[endpointUri].connectAccount(this.account, false)
-          // No need for await as this can occur in the background
-          endpoints[endpointUri].checkReplication(databaseName)
+          try {
+            await endpoint.connectAccount(this.account, false)
+            endpoints[endpointUri] = endpoint
+
+            // No need for await as this can occur in the background
+            endpoint.checkReplication(databaseName)
+          } catch (err: any) {
+            if (err.message.match('Unable to connect')) {
+              // storage node is unavailable, so ignore
+            } else {
+              throw err
+            }
+          }
+        } else {
+          // Unknown if this endpoint is valid, so include it in the pool and the status
+          // will be checked
+          endpoints[endpointUri] = endpoint
         }
       }
 
-      endpoint = await this.locateAvailableEndpoint(endpoints)
+      // If we have an account we would have already attepmted to connect to the storage node
+      // and removed it if it was unavailable, so don't need to check the endpoint status
+      endpoint = await this.locateAvailableEndpoint(endpoints, this.account ? true : false)
     } else {
       endpoint = await this.getActiveEndpoint()
     }
@@ -355,10 +399,6 @@ class StorageEngineVerida extends BaseStorageEngine {
     }
   }
 
-  public async addEndpoint(context: Context, endpointUri: string): Promise<boolean> {
-    return await EndpointReplicator.replicate(this, context, endpointUri)
-  }
-
   /**
    * Call checkReplication() on all the endpoints
    */
@@ -392,6 +432,34 @@ class StorageEngineVerida extends BaseStorageEngine {
     this.checkReplication(databaseName)
   }
 
+  public async info(): Promise<ContextDatabaseInfo> {
+    const endpoints: any = {}
+    let databases: any = {}
+
+    for (let e in this.endpoints) {
+      const endpoint = this.endpoints[e]
+      const usage = await endpoint.getUsage()
+
+      endpoints[endpoint.toString()] = {
+        endpointUri: endpoint.toString(),
+        usage
+      }
+
+      if (Object.keys(databases).length == 0) {
+        databases = await endpoint.getDatabases()
+      }
+    }
+
+    const keys = await this.keyring!.getKeys()
+
+    return {
+      name: this.storageContext,
+      activeEndpoint: this.activeEndpoint?.toString(),
+      endpoints,
+      databases,
+      keys
+    }
+  }
 }
 
 export default StorageEngineVerida;

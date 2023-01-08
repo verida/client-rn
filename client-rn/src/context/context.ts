@@ -6,13 +6,12 @@ import BaseStorageEngine from "./engines/base";
 import { EngineType, StorageEngineTypes } from "./interfaces";
 import DIDContextManager from "../did-context-manager";
 import { DatabaseEngines } from "../interfaces";
-import { DatabaseOpenConfig, DatastoreOpenConfig, MessagesConfig } from "./interfaces";
+import { DatabaseOpenConfig, DatastoreOpenConfig, MessagesConfig, ContextInfo } from "./interfaces";
 import Database from "./database";
 import Datastore from "./datastore";
 import Messaging from "./messaging";
 import Client from "../client";
 import { Profile } from "./profiles/profile";
-import { getRandomInt } from './utils';
 
 const _ = require("lodash");
 
@@ -170,6 +169,16 @@ class Context extends EventEmitter {
     if (this.account) {
       await databaseEngine.connectAccount(this.account);
     }
+
+    // Listen and re-emit endpoint warnings and errors
+    const context = this
+    databaseEngine.on('EndpointUnavailable', (endpointUri: string) => {
+      context.emit('EndpointWarning', endpointUri)
+    })
+
+    databaseEngine.on('EndpointWarning', (endpointUri: string, message: string) => {
+      context.emit('EndpointWarning', endpointUri, message)
+    })
 
     // cache storage engine for this did and context
     this.databaseEngines[did] = databaseEngine;
@@ -348,18 +357,14 @@ class Context extends EventEmitter {
     config: DatabaseOpenConfig = {}
   ): Promise<Database> {
     let contextConfig;
-    if (!config.dsn) {
+    if (!config.endpoints) {
       contextConfig = await this.getContextConfig(
         did,
         false,
         config.contextName ? config.contextName : this.contextName
       );
 
-      // @todo: Improve this to support getting the health of the endpoint to ensure
-      // only healthy endpoints are selected
-      const endpoints = contextConfig.services.databaseServer.endpointUri
-      const endpointIndex = getRandomInt(0, endpoints.length)
-      config.dsn = <string> contextConfig.services.databaseServer.endpointUri[endpointIndex]
+      config.endpoints = <string[]> contextConfig.services.databaseServer.endpointUri
     }
 
     config = _.merge(
@@ -431,12 +436,10 @@ class Context extends EventEmitter {
     did: string,
     options: DatastoreOpenConfig = {}
   ): Promise<Datastore> {
-    //const contextConfig = await this.getContextConfig(did, false)
 
     options = _.merge(
       {
         did,
-        //dsn: contextConfig.services.databaseServer.endpointUri,
         external: true,
       },
       options
@@ -450,6 +453,25 @@ class Context extends EventEmitter {
     return this.dbRegistry;
   }
 
+  /**
+   * Get the status of this context for databases, their connected endpoints and databases
+   * 
+   * @returns 
+   */
+  public async info(): Promise<ContextInfo> {
+    if (!this.account) {
+      throw new Error(`Unable to open database. No authenticated user.`);
+    }
+
+    const accountDid = await this.account!.did()
+    const engine = await this.getDatabaseEngine(accountDid, false)
+    const databases = await engine.info()
+
+    return {
+      databases
+    }
+  }
+  
   /**
    * Emits `progress` event when adding the endpoint has progressed (ie: replicating databases to the new endpoint).
    * 
