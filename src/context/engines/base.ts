@@ -1,6 +1,6 @@
 import { Account } from "@verida/account";
 import { Keyring } from "@verida/keyring";
-import { DatabaseOpenConfig, DatastoreOpenConfig } from "../interfaces";
+import { ContextDatabaseInfo, DatabaseOpenConfig, DatastoreOpenConfig } from "../interfaces";
 import Database from "../database";
 import Datastore from "../datastore";
 import DbRegistry from "../db-registry";
@@ -10,8 +10,7 @@ import Context from '../context';
 import { EventEmitter } from 'events'
 
 /**
- * @category
- * Modules
+ * @emits EndpointUnavailable
  */
 class BaseStorageEngine extends EventEmitter {
   protected storageContext: string;
@@ -78,6 +77,10 @@ class BaseStorageEngine extends EventEmitter {
   }
 
   public addEndpoint(context: Context, uri: string): Promise<boolean> {
+    throw new Error('Not implemented')
+  }
+
+  public async info(): Promise<ContextDatabaseInfo> {
     throw new Error('Not implemented')
   }
 }

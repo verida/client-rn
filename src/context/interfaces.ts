@@ -17,9 +17,9 @@ export interface DatabaseOpenConfig {
   did?: string;
 
   /**
-   * Specify a database connection string to use when opening the database.
+   * Specify an array of possible database connection strings to use when opening the database.
    */
-  dsn?: string | string[];
+  endpoints?: string | string[];
 
   /**
    * Specify a JWT token to use when opening the database.
@@ -139,4 +139,16 @@ export interface EndpointUsage {
   databases: number
   bytes: number
   storageLimit: number
+}
+
+export interface ContextDatabaseInfo {
+  name: string
+  activeEndpoint?: string,
+  endpoints: Record<string, object>
+  databases: Record<string, object>
+  keys: any
+}
+
+export interface ContextInfo {
+  databases: ContextDatabaseInfo
 }
