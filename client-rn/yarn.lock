@@ -1101,12 +1101,12 @@
   resolved "https://registry.yarnpkg.com/@ungap/promise-all-settled/-/promise-all-settled-1.1.2.tgz#aa58042711d6e3275dd37dc597e5d31e8c290a44"
   integrity sha512-sL/cEvJWAnClXw0wHk85/2L0G6Sj8UB0Ctc1TEMbKSsmpRosqhwj9gWgFRZSrBr2f9tiXISwNhCPmlfqUqyb9Q==
 
-"@verida/account-node@^2.0.0-rc6":
-  version "2.0.0-rc6"
-  resolved "https://registry.yarnpkg.com/@verida/account-node/-/account-node-2.0.0-rc6.tgz#6595a21a2795527978812bc07e88aad5b4b772c1"
-  integrity sha512-V5/2iwoHGegkhS09oVEcOIS7y9fTTJ6VKjcgeqcRjSRJKbaCn7SAAyg332fWWEllT3ZI54ExT9H4S5V+fXvUnQ==
+"@verida/account-node@^2.0.0-rc7":
+  version "2.0.0-rc7"
+  resolved "https://registry.yarnpkg.com/@verida/account-node/-/account-node-2.0.0-rc7.tgz#8d6f847e2707e5aacc3981ed23321f703cf093b0"
+  integrity sha512-S+6D8PUCt7T+z2wmDhgjOURRc+JCfNUatC2QBImP3uptvmVQgXeHNdFWdX0CCQ9/pDOhwPZejWxWu94YuO9CIw==
   dependencies:
-    "@verida/account" "^2.0.0-rc6"
+    "@verida/account" "^2.0.0-rc7"
     "@verida/did-client" "^2.0.0-rc6"
     "@verida/did-document" "^2.0.0-rc5"
     "@verida/encryption-utils" "^2.0.0-rc5"
@@ -1114,10 +1114,10 @@
     axios "^0.27.2"
     did-resolver "^4.0.1"
 
-"@verida/account@^2.0.0-rc6":
-  version "2.0.0-rc6"
-  resolved "https://registry.yarnpkg.com/@verida/account/-/account-2.0.0-rc6.tgz#e33b14f2abfe106883ba174df602d69703bf5966"
-  integrity sha512-VF41A+shg9SHuiNeF6tJ21UAzuJsdbVS7X6CZW4KU6bXAY9q62kyDAXqQE9Dm4mbq7La1GCVu6hy+SEby3AIWQ==
+"@verida/account@^2.0.0-rc7":
+  version "2.0.0-rc7"
+  resolved "https://registry.yarnpkg.com/@verida/account/-/account-2.0.0-rc7.tgz#0b6a68ba67ca04eaeac5d280fcf87aab5f94ebd9"
+  integrity sha512-Q3lwsHHQLzKrjJ30XdSmqI1XWY9z22BdbfnmvTGWFEF8i6Mx7ibBtiNH2kG+WSMJmg8X38Gb+vFXwWePr/fd/Q==
   dependencies:
     "@verida/keyring" "^2.0.0-rc5"
     "@verida/storage-link" "^2.0.0-rc6"
