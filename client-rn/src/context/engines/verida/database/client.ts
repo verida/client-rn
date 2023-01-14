@@ -41,12 +41,10 @@ export class DatastoreServerClient {
   }
 
   public async createDatabase(
-    did: string,
     databaseName: string,
     config: any = {}
   ) {
     return this.getAxios(this.authContext!.accessToken).post(this.serviceEndpoint + "user/createDatabase", {
-      did: did,
       databaseName: databaseName,
       options: config,
     });
@@ -59,19 +57,25 @@ export class DatastoreServerClient {
     if (databaseName) {
       opts.databaseName = databaseName
     }
-    return this.getAxios(this.authContext!.accessToken).post(this.serviceEndpoint + "user/checkReplication", opts);
+    return await this.getAxios(this.authContext!.accessToken).post(this.serviceEndpoint + "user/checkReplication", opts);
   }
 
   public async updateDatabase(
-    did: string,
     databaseName: string,
     config: any = {}
   ) {
-    return this.getAxios(this.authContext!.accessToken).post(this.serviceEndpoint + "user/updateDatabase", {
-      did: did,
+    return await this.getAxios(this.authContext!.accessToken).post(this.serviceEndpoint + "user/updateDatabase", {
       databaseName: databaseName,
       options: config,
     });
+  }
+
+  public async deleteDatabase(
+    databaseName: string
+  ) {
+    return await this.getAxios(this.authContext!.accessToken).post(this.serviceEndpoint + "user/deleteDatabase", {
+      databaseName
+  });
   }
 
   public async getUsage(): Promise<EndpointUsage> {
@@ -114,6 +118,7 @@ export class DatastoreServerClient {
         // @todo: Application-Name needs to become Storage-Context
         "Application-Name": this.storageContext,
       },
+      timeout: 5000,
     };
 
     if (accessToken) {

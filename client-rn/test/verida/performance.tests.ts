@@ -22,7 +22,7 @@ const TEST_DB_NAME = 'Test Db'
 const TEST_DB_NAME_2 = 'Test Db2'
 
 /**
- * These tests were originally run in Australia, connecting to nodes in the US, which significantly impacts on performance.
+ * Important: Your location relative to the nodes makes a very big difference in the performance as the protocol is quite chatty.
  * 
  * Performance notes:
  * 
@@ -150,8 +150,14 @@ describe.skip('Performance tests', () => {
     })
 
     after(async () => {
-        await context1.close()
-        await context2.close()
-        await context3.close()
+        await context1.close({
+            clearLocal: true
+        })
+        await context2.close({
+            clearLocal: true
+        })
+        await context3.close({
+            clearLocal: true
+        })
     })
 })

@@ -71,6 +71,18 @@ export interface DatabaseOpenConfig {
   ignoreCache?: boolean
 }
 
+export interface DatabaseDeleteConfig {
+  // Only delete local copies / caches of databases
+  localOnly?: boolean
+}
+
+export interface ContextCloseOptions {
+  // Clear any local database caches
+  clearLocal?: boolean
+}
+
+export interface DatabaseCloseOptions extends ContextCloseOptions {}
+
 // @todo: Same as DatabaseOpenConfig
 
 /**
