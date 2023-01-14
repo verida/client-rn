@@ -21,8 +21,24 @@ Switch back to this repo and merge:
 git subtree pull -P client-rn client-ts-source subtree/<version> --squash
 ```
 
+Update all dependencies to the latest versions (assumes `package.json` has changed):
+
+```
+cd client-rn
+yarn
+```
+
 Switch to `verida-js` and delete the newly created branch
 
 ```
 git branch -D subtree/<version>
 ```
+
+# Creating a release
+
+```
+yarn run build
+yarn publish --tag next
+```
+
+Use the tag `next` for an upcoming releaes (ie: RC) and `latest` for the latest release
