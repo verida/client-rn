@@ -1,7 +1,7 @@
 import BaseStorageEngine from "../../base";
 import EncryptedDatabase from "./db-encrypted";
 import Database from "../../../database";
-import { DatabaseOpenConfig, PermissionsConfig, ContextDatabaseInfo } from "../../../interfaces";
+import { DatabaseOpenConfig, PermissionsConfig, ContextDatabaseInfo, DatabaseDeleteConfig } from "../../../interfaces";
 import { Account } from "@verida/account";
 import PublicDatabase from "./db-public";
 import DbRegistry from "../../../db-registry";
@@ -29,11 +29,11 @@ class StorageEngineVerida extends BaseStorageEngine {
 
   // @todo: specify device id // deviceId: string="Test device"
   constructor(
-    storageContext: string,
+    context: Context,
     dbRegistry: DbRegistry,
     contextConfig: Interfaces.SecureContextConfig,
   ) {
-    super(storageContext, dbRegistry, contextConfig);
+    super(context, dbRegistry, contextConfig);
 
     const engine = this
     this.endpoints = {}
@@ -59,7 +59,6 @@ class StorageEngineVerida extends BaseStorageEngine {
     // Randomly choose a "primary" connection
     let primaryIndex = getRandomInt(0, Object.keys(endpoints).length)
     let primaryEndpointUri = Object.keys(endpoints)[primaryIndex]
-    //console.log(`primaryEndpointUri: ${primaryEndpointUri} for ${this.storageContext} / ${this.accountDid}`)
 
     if (!checkStatus) {
       return endpoints[primaryEndpointUri]
@@ -102,6 +101,10 @@ class StorageEngineVerida extends BaseStorageEngine {
     return this.endpoints[endpintUri]
   }
 
+  public getEndpoints(): Record<string, Endpoint> {
+    return this.endpoints
+  }
+
   public async connectAccount(account: Account) {
     try {
       await super.connectAccount(account);
@@ -132,12 +135,13 @@ class StorageEngineVerida extends BaseStorageEngine {
 
       this.endpoints = finalEndpoints
       this.activeEndpoint = await this.locateAvailableEndpoint(this.endpoints, false)
-      this.accountDid = await this.account!.did();
+      this.accountDid = (await this.account!.did()).toLowerCase();
       //console.log(`connectAccount(${this.accountDid}): ${(new Date()).getTime()-now}`)
 
       // call checkReplication() to ensure replication is working correctly on all
       // the endpoints and perform any necessary auto-repair actions
-      await this.checkReplication()
+      // no need to async?
+      this.checkReplication()
     } catch (err: any) {
       if (err.name == "ContextNotFoundError") {
         return
@@ -231,7 +235,7 @@ class StorageEngineVerida extends BaseStorageEngine {
             endpoints[endpointUri] = endpoint
 
             // No need for await as this can occur in the background
-            endpoint.checkReplication(databaseName)
+            //endpoint.checkReplication(databaseName)
           } catch (err: any) {
             if (err.message.match('Unable to connect')) {
               // storage node is unavailable, so ignore
@@ -367,7 +371,7 @@ class StorageEngineVerida extends BaseStorageEngine {
       try {
         await db.init();
       } catch (err: any) {
-        if (err.status == 401 && err.code == 90) {
+        if ((err.status == 401 && err.code == 90) || err.message.match('Permission denied')) {
           throw new Error(
             `Unable to open database. Invalid credentials supplied.`
           );
@@ -382,13 +386,6 @@ class StorageEngineVerida extends BaseStorageEngine {
         "Unable to open database. Invalid permissions configuration."
       );
     }
-
-    // @todo Cache databases so we don't open the same one more than once
-    //let db = new Database(dbName, did, this.appName, this, config);
-
-    /*if (config.saveDatabase && db._originalDb && this.dbManager) {
-            this.dbManager.saveDb(dbName, did, this.appName, config.permissions, db._originalDb.encryptionKey);
-        }*/
   }
 
   public logout() {
@@ -423,13 +420,51 @@ class StorageEngineVerida extends BaseStorageEngine {
     const promises = []
     for (let i in this.endpoints) {
       const endpoint = this.endpoints[i]
-      promises.push(endpoint.createDb(databaseName, did, permissions))
+      promises.push(endpoint.createDb(databaseName, permissions))
     }
 
-    // No need for await as this can occur in the background
-    await Promise.all(promises)
+    // No need for await as this can occur in the background?
+    const result = await Promise.all(promises)
     //console.log(`createDb(${databaseName}, ${did}): ${(new Date()).getTime()-now}`)
-    this.checkReplication(databaseName)
+
+    // Call check replication to ensure this new database gets replicated across all nodes
+    await this.checkReplication(databaseName)
+  }
+
+  /**
+   * Call updateDb() on all the endpoints
+   */
+  public async updateDatabase(databaseName: string, options: any): Promise<void> {
+    //const now = (new Date()).getTime()
+    const promises = []
+    for (let i in this.endpoints) {
+      const endpoint = this.endpoints[i]
+      promises.push(endpoint.updateDatabase(databaseName, options))
+    }
+
+    // No need for await as this can occur in the background?
+    const result = await Promise.all(promises)
+    //console.log(`createDb(${databaseName}, ${did}): ${(new Date()).getTime()-now}`)
+  }
+
+  /**
+   * Call deleteDatabase() on all the endpoints
+   */
+  public async deleteDatabase(databaseName: string): Promise<void> {
+    //const now = (new Date()).getTime()
+    const promises = []
+    for (let i in this.endpoints) {
+      const endpoint = this.endpoints[i]
+      promises.push(endpoint.deleteDatabase(databaseName))
+    }
+
+    // delete from database registry
+
+    // No need for await as this can occur in the background?
+    const result = await Promise.all(promises)
+    const dbRegistry = this.context.getDbRegistry()
+    await dbRegistry.removeDb(databaseName, this.accountDid!, this.storageContext)
+    //console.log(`createDb(${databaseName}, ${did}): ${(new Date()).getTime()-now}`)
   }
 
   public async info(): Promise<ContextDatabaseInfo> {
@@ -459,6 +494,17 @@ class StorageEngineVerida extends BaseStorageEngine {
       databases,
       keys
     }
+  }
+
+  public async closeDatabase(did: string, databaseName: string) {
+    // delete from cache
+    await this.context.clearDatabaseCache(did, databaseName)
+
+    for (let e in this.endpoints) {
+      this.endpoints[e].disconnectDatabase(did, databaseName)
+    }
+    
+    // @todo delete from registry
   }
 }
 

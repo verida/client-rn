@@ -3,7 +3,7 @@ import { Account, AuthTypeConfig, AuthContext } from "@verida/account";
 import { Interfaces } from "@verida/storage-link";
 
 import BaseStorageEngine from "./engines/base";
-import { EngineType, StorageEngineTypes } from "./interfaces";
+import { ContextCloseOptions, DatabaseCloseOptions, DatabaseDeleteConfig, EngineType, StorageEngineTypes } from "./interfaces";
 import DIDContextManager from "../did-context-manager";
 import { DatabaseEngines } from "../interfaces";
 import { DatabaseOpenConfig, DatastoreOpenConfig, MessagesConfig, ContextInfo } from "./interfaces";
@@ -60,7 +60,6 @@ class Context extends EventEmitter {
   private dbRegistry: DbRegistry;
 
   private databaseCache: Record<string, Database | Promise<Database>> = {}
-  private externalDatabaseCache: Database[] = []
 
   /**
    * Instantiate a new context.
@@ -139,7 +138,7 @@ class Context extends EventEmitter {
    * @param did
    * @returns {BaseStorageEngine}
    */
-  private async getDatabaseEngine(
+  public async getDatabaseEngine(
     did: string,
     createContext?: boolean
   ): Promise<BaseStorageEngine> {
@@ -158,7 +157,7 @@ class Context extends EventEmitter {
 
     const engine = DATABASE_ENGINES[engineType]; // @todo type cast correctly
     const databaseEngine = new engine(
-      this.contextName,
+      this,
       this.dbRegistry,
       contextConfig
     );
@@ -307,7 +306,9 @@ class Context extends EventEmitter {
       config.did = accountDid;
     }
 
-    const cacheKey = `${config.did}/${databaseName}`
+    config.did = config.did.toLowerCase()
+
+    const cacheKey = `${config.did}/${databaseName}/internal`
 
     if (this.databaseCache[cacheKey] && !config.ignoreCache) {
       return this.databaseCache[cacheKey]
@@ -325,7 +326,6 @@ class Context extends EventEmitter {
         if (!config.signingContext) {
           config.signingContext = instance;
         }
-    
         const database = await databaseEngine.openDatabase(databaseName, config);
         if (config.saveDatabase !== false) {
           await instance.dbRegistry.saveDb(database, false);
@@ -356,6 +356,12 @@ class Context extends EventEmitter {
     did: string,
     config: DatabaseOpenConfig = {}
   ): Promise<Database> {
+    did = did.toLowerCase()
+    const cacheKey = `${did}/${databaseName}/external`
+    if (this.databaseCache[cacheKey] && !config.ignoreCache) {
+      return this.databaseCache[cacheKey]
+    }
+
     let contextConfig;
     if (!config.endpoints) {
       contextConfig = await this.getContextConfig(
@@ -392,15 +398,14 @@ class Context extends EventEmitter {
       );
       config.signingContext = this;
 
-      return context!.openDatabase(databaseName, config);
+      return await context!.openDatabase(databaseName, config);
     }
 
     const databaseEngine = await this.getDatabaseEngine(did);
-    
     const database = await databaseEngine.openDatabase(databaseName, config);
 
-    // Maintain an array of database instances so they can be closed
-    this.externalDatabaseCache.push(database)
+    // Add to cache of databases
+    this.databaseCache[cacheKey] = database
     return database
   }
 
@@ -518,15 +523,23 @@ class Context extends EventEmitter {
    * 
    * Closes all open database connections, returns resources, cancels event listeners
    */
-  public async close(): Promise<void> {
+  public async close(options: ContextCloseOptions = {
+    clearLocal: false
+  }): Promise<void> {
+    // close all the other databases
     for (let d in this.databaseCache) {
       const database = await this.databaseCache[d]
-      await database.close()
+      await database.close(<DatabaseCloseOptions> options)
     }
+  }
 
-    for (let d in this.externalDatabaseCache) {
-      const database = await this.externalDatabaseCache[d]
-      await database.close()
+  public async clearDatabaseCache(did: string, databaseName: string) {
+    const types = ['internal', 'external']
+    for (let t in types) {
+      const cacheKey = `${did.toLowerCase()}/${databaseName}/${types[t]}`
+      if (this.databaseCache[cacheKey]) {
+        delete this.databaseCache[cacheKey]
+      }
     }
   }
 
