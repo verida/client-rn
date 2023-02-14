@@ -1,6 +1,9 @@
-import PouchDB from '@craftzdog/pouchdb-core-react-native'
-import PouchDBCrypt from '@craftzdog/pouchdb-core-react-native'
-import HttpPouch from 'pouchdb-adapter-http'
+import { VeridaDatabaseConfig } from "./interfaces";
+import BaseDb from "./base-db";
+import StorageEngineVerida from "./engine"
+import EncryptionUtils from "@verida/encryption-utils";
+import { DatabaseCloseOptions, DatabaseDeleteConfig, DbRegistryEntry } from "@verida/types";
+
 import replication from '@verida/pouchdb-replication-react-native'
 import mapreduce from 'pouchdb-mapreduce'
 import SQLite from 'react-native-sqlite-2'
@@ -8,13 +11,10 @@ import SQLiteAdapterFactory from 'pouchdb-adapter-react-native-sqlite'
 const SQLiteAdapter = SQLiteAdapterFactory(SQLite)
 import * as CryptoPouch from "crypto-pouch"
 import * as PouchDBFind from "pouchdb-find"
-import { VeridaDatabaseConfig } from "./interfaces"
-import BaseDb from './base-db'
-import { DbRegistryEntry } from '../../../db-registry'
-import StorageEngineVerida from "./engine"
-import EncryptionUtils from "@verida/encryption-utils"
-import Utils from "./utils";
-import { DatabaseCloseOptions, DatabaseDeleteConfig } from "../../../interfaces";
+
+import HttpPouch from 'pouchdb-adapter-http'
+import PouchDB from '@craftzdog/pouchdb-core-react-native'
+import PouchDBCrypt from '@craftzdog/pouchdb-core-react-native'
 
 PouchDB.plugin(HttpPouch)
   .plugin(replication)

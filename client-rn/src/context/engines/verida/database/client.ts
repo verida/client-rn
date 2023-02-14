@@ -1,7 +1,6 @@
+import { EndpointUsage, VeridaDatabaseAuthContext } from "@verida/types";
 import Axios from "axios";
-import { VeridaDatabaseAuthContext } from "@verida/account";
 import { ServiceEndpoint } from 'did-resolver'
-import { EndpointUsage } from '../../../interfaces'
 
 /**
  * Interface for RemoteClientAuthentication
@@ -75,7 +74,26 @@ export class DatastoreServerClient {
   ) {
     return await this.getAxios(this.authContext!.accessToken).post(this.serviceEndpoint + "user/deleteDatabase", {
       databaseName
-  });
+    });
+  }
+
+  public async pingDatabases(
+    databaseHashes: string[],
+    isWritePublic: boolean,
+    did?: string,
+    contextName?: string
+  ) {
+    try {
+      return await this.getAxios(this.authContext!.accessToken).post(this.serviceEndpoint + "user/pingDatabase", {
+        databaseHashes,
+        isWritePublic,
+        did,
+        contextName
+      });
+    } catch(err: any) {
+      //console.log(`error with pingDatabase() ${err.response.data.message}`)
+      // Ignore errors for now as the endpoint doesn't exist on storage nodes
+    }
   }
 
   public async getUsage(): Promise<EndpointUsage> {

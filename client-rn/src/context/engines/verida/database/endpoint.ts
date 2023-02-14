@@ -1,11 +1,10 @@
 import { EventEmitter } from 'events'
 import DatastoreServerClient from './client'
 import { ServiceEndpoint } from 'did-resolver'
-import { Account, AuthContext, VeridaDatabaseAuthContext, VeridaDatabaseAuthTypeConfig } from '@verida/account'
-import { Interfaces } from '@verida/storage-link'
-import { DatabaseDeleteConfig, EndpointUsage, PermissionsConfig } from "../../../interfaces";
+import { Account } from '@verida/account'
 import StorageEngineVerida from './engine'
 import Utils from "./utils";
+import { AuthContext, DatabasePermissionsConfig, EndpointUsage, SecureContextConfig, VeridaDatabaseAuthContext, VeridaDatabaseAuthTypeConfig, DatabasePermissionOptionsEnum } from '@verida/types'
 
 import PouchDB from '@craftzdog/pouchdb-core-react-native'
 import HttpPouch from 'pouchdb-adapter-http'
@@ -27,7 +26,7 @@ export default class Endpoint extends EventEmitter {
     private contextName: string
     private endpointUri: ServiceEndpoint
     private client: DatastoreServerClient
-    private contextConfig: Interfaces.SecureContextConfig
+    private contextConfig: SecureContextConfig
     private storageEngine: StorageEngineVerida
 
     private account?: Account
@@ -36,7 +35,7 @@ export default class Endpoint extends EventEmitter {
     private usePublic: boolean = false
     private databases: Record<string, any> = {}
 
-    constructor(storageEngine: StorageEngineVerida, contextName: string, contextConfig: Interfaces.SecureContextConfig, endpointUri: ServiceEndpoint) {
+    constructor(storageEngine: StorageEngineVerida, contextName: string, contextConfig: SecureContextConfig, endpointUri: ServiceEndpoint) {
         super()
 
         this.storageEngine = storageEngine
@@ -66,10 +65,9 @@ export default class Endpoint extends EventEmitter {
         await this.authenticate(isOwner)
     }
 
-    public async connectDb(did: string, databaseName: string, permissions: PermissionsConfig, isOwner: boolean) {
+    public async connectDb(did: string, databaseName: string, permissions: DatabasePermissionsConfig, isOwner: boolean) {
         const databaseHash = Utils.buildDatabaseHash(databaseName, this.contextName, did);
         if (this.databases[databaseHash]) {
-            console.log('returning cache from endpoint')
             return this.databases[databaseHash];
         }
 
@@ -80,6 +78,8 @@ export default class Endpoint extends EventEmitter {
         const dbConfig: any = {
             skip_setup: true
         }
+
+        const isPublicWrite = (permissions.read == DatabasePermissionOptionsEnum.PUBLIC || permissions.write == DatabasePermissionOptionsEnum.PUBLIC)
 
         if (this.auth && !this.usePublic) {
             const instance = this
@@ -96,6 +96,10 @@ export default class Endpoint extends EventEmitter {
                     opts.headers.set('Authorization', `Bearer ${accessToken}`)
 
                     result = await PouchDB.fetch(url, opts)
+
+                    // Ping database to ensure replication is active
+                    // No need to await
+                    instance.client.pingDatabases([databaseHash], isPublicWrite, did, this.contextName)
 
                     if (result.status == 401) {
                         throw new Error(`Permission denied to access server: ${instance.toString()}`)
@@ -134,6 +138,10 @@ export default class Endpoint extends EventEmitter {
         }
 
         this.databases[databaseHash] = db
+
+        // Ping database to ensure replication is active
+        // No need to await
+        this.client.pingDatabases([databaseHash], isPublicWrite, did, this.contextName)
         return db
     }
 
@@ -219,7 +227,7 @@ export default class Endpoint extends EventEmitter {
         this.client.setAuthContext(authContext)
     }
 
-    public async createDb(databaseName: string, permissions: PermissionsConfig) {
+    public async createDb(databaseName: string, permissions: DatabasePermissionsConfig) {
         const options = {
             permissions
         };
@@ -229,7 +237,7 @@ export default class Endpoint extends EventEmitter {
             // There's an odd timing issue that needs a deeper investigation
             await Utils.sleep(1000);
         } catch (err) {
-            throw new Error(`User doesn't exist or unable to create user database (${databaseName})`);
+            throw new Error(`User doesn't exist or unable to create user database (${databaseName} / ${this.endpointUri})`);
         }
     }
 
