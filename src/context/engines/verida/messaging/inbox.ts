@@ -1,11 +1,11 @@
 import { box } from "tweetnacl";
 const didJWT = require("did-jwt");
-const EventEmitter = require("events");
+import { EventEmitter } from 'events'
 
 import { Keyring } from "@verida/keyring";
-import { PermissionOptionsEnum } from "../../../interfaces";
 import Context from "../../../context";
 import EncryptionUtils from "@verida/encryption-utils";
+import { DatabasePermissionOptionsEnum } from "@verida/types";
 
 /**
  * @category
@@ -73,7 +73,7 @@ class VeridaInbox extends EventEmitter {
 
     // TODO: Verify the DID-JWT with a custom VID resolver
 
-    let inboxEntry = {
+    let inboxEntry: any = {
       _id: inboxItem._id, // Use the same _id to avoid duplicates
       message: item.data.message,
       type: item.data.type,
@@ -86,6 +86,10 @@ class VeridaInbox extends EventEmitter {
       insertedAt: new Date().toISOString(),
       read: false,
     };
+
+    if (inboxItem.openUrl) {
+      inboxEntry.openUrl = inboxItem.openUrl
+    }
 
     // Save a new inbox entry into the user's private inbox
     try {
@@ -197,8 +201,8 @@ class VeridaInbox extends EventEmitter {
       "https://core.schemas.verida.io/inbox/item/v0.1.0/schema.json",
       {
         permissions: {
-          read: PermissionOptionsEnum.PUBLIC,
-          write: PermissionOptionsEnum.PUBLIC,
+          read: DatabasePermissionOptionsEnum.PUBLIC,
+          write: DatabasePermissionOptionsEnum.PUBLIC,
         },
       }
     );
@@ -207,8 +211,8 @@ class VeridaInbox extends EventEmitter {
       "https://core.schemas.verida.io/inbox/entry/v0.1.0/schema.json",
       {
         permissions: {
-          read: PermissionOptionsEnum.OWNER,
-          write: PermissionOptionsEnum.OWNER,
+          read: DatabasePermissionOptionsEnum.OWNER,
+          write: DatabasePermissionOptionsEnum.OWNER,
         },
       }
     );

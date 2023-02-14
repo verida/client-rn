@@ -1,8 +1,7 @@
 const _ = require("lodash");
-import { DatastoreOpenConfig } from "./interfaces";
 import Context from "./context";
 import Schema from "./schema";
-import { DIDDocument } from "@verida/did-document";
+import { IDatastore, DatastoreOpenConfig, DatabaseOpenConfig, DatabaseCloseOptions } from "@verida/types";
 
 /**
  * A datastore wrapper around a given database and schema.
@@ -15,7 +14,7 @@ import { DIDDocument } from "@verida/did-document";
  * @category
  * Modules
  */
-class Datastore {
+class Datastore implements IDatastore {
   protected schemaName: string;
   protected schemaPath?: string;
   protected schema?: any;
@@ -75,7 +74,7 @@ class Datastore {
    */
   public async save(data: any, options: any = {}): Promise<object | boolean> {
     await this.init();
-    
+
     data.schema = this.schemaPath;
 
     let valid = await this.schema.validate(data);
@@ -219,10 +218,10 @@ class Datastore {
       this.db = await this.context.openExternalDatabase(
         dbName,
         this.config.did!,
-        this.config
+        <DatabaseOpenConfig> this.config
       );
     } else {
-      this.db = await this.context.openDatabase(dbName, this.config);
+      this.db = await this.context.openDatabase(dbName, <DatabaseOpenConfig> this.config);
     }
     let indexes = schemaJson.database.indexes;
 
@@ -252,7 +251,7 @@ class Datastore {
    * Update the list of valid users for this datastore.
    *
    * @param readList {string[]} List of DID's that can read from this datastore.
-   * @param writeList {writeList[]} List of DID's that can wrtie to this datastore.
+   * @param writeList {writeList[]} List of DID's that can write to this datastore.
    */
   public async updateUsers(
     readList: string[] = [],
@@ -260,6 +259,13 @@ class Datastore {
   ): Promise<void> {
     await this.init();
     await this.db.updateUsers(readList, writeList);
+  }
+
+  public async close(options: DatabaseCloseOptions = {
+    clearLocal: false
+  }) {
+    const db = await this.getDb()
+    await db.close(options)
   }
 }
 

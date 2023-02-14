@@ -1,6 +1,5 @@
-import { Context } from "../../../..";
-import { PermissionsConfig } from "../../../interfaces";
-import DatastoreServerClient from "./client";
+import { DatabasePermissionsConfig, IContext } from "@verida/types";
+import Endpoint from "./endpoint";
 
 /**
  * Interface for VeridaDatabaseConfig
@@ -8,13 +7,12 @@ import DatastoreServerClient from "./client";
 export interface VeridaDatabaseConfig {
   databaseName: string;
   did: string;
-  dsn: string;
   storageContext: string;
 
-  permissions?: PermissionsConfig;
+  permissions?: DatabasePermissionsConfig;
 
   signData?: boolean;
-  signContext: Context;
+  signContext: IContext;
 
   readOnly?: boolean;
   isOwner?: boolean;
@@ -22,5 +20,5 @@ export interface VeridaDatabaseConfig {
 
   saveDatabase: boolean;
 
-  client: DatastoreServerClient;
+  endpoint: Endpoint;
 }

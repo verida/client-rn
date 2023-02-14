@@ -1,30 +1,8 @@
 import { Context } from "..";
-import Database from "./database";
 import Datastore from "./datastore";
-import { PermissionsConfig } from "./interfaces";
 const _ = require("lodash");
 import EncryptionUtils from "@verida/encryption-utils";
-
-/**
- * Interface for DbRegistryEntryEncryptionKey
- */
-export interface DbRegistryEntryEncryptionKey {
-  key: string;
-  type: string;
-}
-
-/**
- * Interface for DbRegistryEntry
- */
-export interface DbRegistryEntry {
-  dbHash: string;
-  dbName: string;
-  endpointType: string;
-  did: string;
-  contextName: string;
-  permissions: PermissionsConfig;
-  encryptionKey?: DbRegistryEntryEncryptionKey;
-}
+import { IDatabase, IDbRegistry } from "@verida/types";
 
 /**
  * Maintain a registry of all databases owned by the current user
@@ -35,7 +13,7 @@ export interface DbRegistryEntry {
  * @category
  * Modules
  */
-class DbRegistry {
+class DbRegistry implements IDbRegistry {
   private context: Context;
   private dbStore?: Datastore;
 
@@ -52,7 +30,7 @@ class DbRegistry {
    * @param {*} encryptionKey Buffer representing the encryption key
    * @param {*} options
    */
-  public async saveDb(database: Database, checkPermissions: boolean = true) {
+  public async saveDb(database: IDatabase, checkPermissions: boolean = true) {
     await this.init();
 
     const dbEntry = await database.registryEntry();
@@ -98,7 +76,19 @@ class DbRegistry {
     }
   }
 
-  public async getMany(filter: any, options: any) {
+  public async removeDb(databaseName: string, did: string, contextName: string): Promise<boolean> {
+    await this.init();
+
+    const row = await this.get(databaseName, did, contextName)
+    if (!row) {
+      return false
+    }
+
+    const result = await this.dbStore!.delete(row._id)
+    return true
+  }
+
+  public async getMany(filter: any = {}, options: any = {}) {
     await this.init();
 
     return this.dbStore!.getMany(filter, options);

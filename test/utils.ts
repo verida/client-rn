@@ -10,5 +10,11 @@ export const assertIsValidDbResponse = function(assert: any, data: any) {
 
 export const assertIsValidSignature = async function(assert: any, client: Client, did: string, data: any) {
     const validSignatures = await client.getValidDataSignatures(data, did)
-    assert.ok(validSignatures.includes(did), 'DID is included in list of valid signatures')
+    assert.ok(validSignatures.includes(did.toLowerCase()), 'DID is included in list of valid signatures')
+}
+
+export function sleep(ms) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
 }

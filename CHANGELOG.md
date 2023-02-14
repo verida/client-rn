@@ -1,3 +1,62 @@
+2022-02-09 (v2.0.5)
+-------------------
+
+- [client-ts] Feature: Support new database pinging of storage nodes to increase replication efficiency
+
+2022-01-27 (v2.0.4)
+-------------------
+
+- Remove engine restriction of Node 14 only
+
+2022-01-24 (v2.0.2)
+-------------------
+
+- Upgrade to @verida/types
+
+2022-01-17 (v2.0.1)
+-------------------
+
+- Fix: Properly set active endpoint when connecting account
+
+2022-01-13 (v2.0.0)
+-------------------
+
+- Support updated account dependencies
+- Support multiple endpoints for contexts
+- Support CouchDB refresh and access token auth for public and encrypted databases
+- Support authentication retry when access / refresh token expires
+- Support server side replication
+- Support triggering server side replication checks
+- Support disconnecting a specific device
+- Support blockchain enabled Verida DID Method
+- Support getting context information
+- Support getting database information
+- Cleanup config to remove deprecated default options
+- Support caching auth contexts
+- Support context events (`EndpointUnavailable`, `EndpointWarning`)
+- Support caching context database connections
+- Support closing all open database connections for a context
+- Support deleting databases
+- Support fetching endpoint usage information
+- Migrate away from `dns` based connections to `StorageEndpoint` based connections
+- Extensive updates to unit tests for new functionality
+- Add performance tests that provide deeper insight into the latency of important protocol operations
+- Update HTTP status code checks to match changes in storage-node
+
+2022-05-27 (v1.1.15)
+-------------------
+
+- Add more top level exports; Database, Datastore, Profile, Schema (#205)
+- Support a fallback context to search when opening a public profile (#203 #194)
+- Support auto-login from URL parameters to support URL redirection from the Vault (#199)
+- Return empty array if no results from database when calling `getMany()` (#193)
+- Add mocha types to resulve unit test errors
+- Fix incorrect typing of `DatabaseOpenConfig` encryptionKey
+
+2022-04-12 (v1.1.14)
+-------------------
+
+- Improve typing
 
 2022-03-10 (v1.1.13)
 -------------------

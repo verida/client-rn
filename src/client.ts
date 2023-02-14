@@ -1,23 +1,17 @@
-import Encryption from "@verida/encryption-utils";
-const _ = require("lodash");
-
-import { Account } from "@verida/account";
-import { Interfaces } from "@verida/storage-link";
-import { Profile } from "./context/profiles/profile";
+import { IProfile, IClient, ClientConfig, DefaultClientConfig, IAccount, IContext, EnvironmentType, SecureContextConfig } from "@verida/types";
 import { DIDClient } from "@verida/did-client";
 
-import { ClientConfig, DefaultClientConfig } from "./interfaces";
 import Context from "./context/context";
 import DIDContextManager from "./did-context-manager";
 import Schema from "./context/schema";
 import DEFAULT_CONFIG from "./config";
-import EncryptionUtils from "@verida/encryption-utils";
+const _ = require("lodash");
 
 /**
  * @category
  * Modules
  */
-class Client {
+class Client implements IClient {
   /**
    * Connection to the Verida DID Registry
    */
@@ -31,7 +25,7 @@ class Client {
   /**
    * Connected account instance
    */
-  private account?: Account;
+  private account?: IAccount;
 
   /**
    * DID of connected account
@@ -41,7 +35,7 @@ class Client {
   /**
    * Currently selected environment
    */
-  private environment: string;
+  private environment: EnvironmentType;
 
   /**
    * Current configuration for this client
@@ -53,9 +47,9 @@ class Client {
    *
    * @param userConfig ClientConfig Configuration for establishing a connection to the Verida network
    */
-  constructor(userConfig: ClientConfig = {}) {
+  constructor(userConfig: ClientConfig) {
     this.environment = userConfig.environment
-      ? userConfig.environment
+      ? <EnvironmentType> userConfig.environment
       : DEFAULT_CONFIG.environment;
 
     const defaultConfig = DEFAULT_CONFIG.environments[this.environment]
@@ -63,7 +57,15 @@ class Client {
       : {};
     this.config = _.merge(defaultConfig, userConfig) as DefaultClientConfig;
 
-    this.didClient = new DIDClient(this.config.didServerUrl!);
+    userConfig.didClientConfig = userConfig.didClientConfig ? userConfig.didClientConfig : {
+      network: this.environment
+    }
+
+    this.didClient = new DIDClient({
+      ...userConfig.didClientConfig,
+      network: this.environment
+    });
+
     this.didContextManager = new DIDContextManager(this.didClient);
     Schema.setSchemaPaths(this.config.schemaPaths!);
   }
@@ -76,7 +78,7 @@ class Client {
    *
    * @param account AccountInterface
    */
-  public async connect(account: Account) {
+  public async connect(account: IAccount): Promise<void> {
     if (this.isConnected()) {
       throw new Error("Account is already connected.");
     }
@@ -105,7 +107,7 @@ class Client {
   public async openContext(
     contextName: string,
     forceCreate: boolean = true
-  ): Promise<Context | undefined> {
+  ): Promise<IContext | undefined> {
     if (forceCreate) {
       if (!this.account) {
         throw new Error(
@@ -144,7 +146,7 @@ class Client {
     }
 
     // @todo cache the storage contexts
-    return new Context(this, contextName, this.didContextManager, this.account);
+    return new Context(this, contextName, this.didContextManager, this.account!);
   }
 
   /**
@@ -153,7 +155,7 @@ class Client {
    * @param did 
    * @returns 
    */
-  public async openExternalContext(contextName: string, did: string) {
+  public async openExternalContext(contextName: string, did: string): Promise<IContext> {
     const contextConfig = await this.didContextManager.getDIDContextConfig(
       did,
       contextName,
@@ -166,7 +168,7 @@ class Client {
     }
 
     // @todo cache the storage contexts
-    return new Context(this, contextName, this.didContextManager, this.account);
+    return new Context(this, contextName, this.didContextManager, this.account!);
   }
 
   /**
@@ -181,7 +183,7 @@ class Client {
   public async getContextConfig(
     did: string,
     contextName: string
-  ): Promise<Interfaces.SecureContextConfig | undefined> {
+  ): Promise<SecureContextConfig | undefined> {
     return this.didContextManager.getDIDContextConfig(did, contextName, false);
   }
 
@@ -203,9 +205,18 @@ class Client {
   public async openPublicProfile(
     did: string,
     contextName: string,
-    profileName: string = "basicProfile"
-  ): Promise<Profile | undefined> {
-    const context = await this.openExternalContext(contextName, did);
+    profileName: string = "basicProfile",
+    fallbackContext: string | null = "Verida: Vault"
+  ): Promise<IProfile | undefined> {
+    let context: Context | undefined;
+    try {
+      context = <Context> await this.openExternalContext(contextName, did);
+    } catch (error) {
+      if (fallbackContext) {
+        return await this.openPublicProfile(did, fallbackContext, profileName, null);
+      }
+    }
+
     if (!context) {
       throw new Error(
         `Account does not have a public profile for ${contextName}`
@@ -241,13 +252,16 @@ class Client {
 
     let validSignatures = [];
     for (let key in data.signatures) {
-      const signerParts = key.match(/did:vda:0x([a-z0-9A-Z]*)\?context=(.*)/);
-      if (!signerParts || signerParts.length != 3) {
+      const signerParts = key.match(/did:vda:([^]*):([^]*)\?context=(.*)$/);
+      if (!signerParts || signerParts.length != 4) {
         continue;
       }
 
-      const signerDid = `did:vda:0x${signerParts[1]}`;
-      const signerContextHash = signerParts[2];
+      const sNetwork = signerParts[1]
+      const sDid = signerParts[2]
+      const sContext = signerParts[3]
+
+      const signerDid = `did:vda:${sNetwork}:${sDid}`;
 
       if (!did || signerDid.toLowerCase() == did.toLowerCase()) {
         const signature = data.signatures[key];
@@ -258,7 +272,7 @@ class Client {
 
         const validSig = didDocument.verifyContextSignature(
           _data,
-          signerContextHash,
+          sContext,
           signature,
           true
         );
@@ -281,7 +295,6 @@ class Client {
   public async getSchema(schemaUri: string): Promise<Schema> {
     return Schema.getSchema(schemaUri);
   }
-
 }
 
 export default Client;

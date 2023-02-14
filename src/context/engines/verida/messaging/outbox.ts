@@ -3,10 +3,10 @@ const didJWT = require("did-jwt");
 import { box } from "tweetnacl";
 import { Keyring } from "@verida/keyring";
 import Datastore from "../../../datastore";
-import { MessageSendConfig, PermissionOptionsEnum } from "../../../interfaces";
 import DIDContextManager from "../../../../did-context-manager";
 import Context from "../../../context";
 import EncryptionUtils from "@verida/encryption-utils";
+import { DatabasePermissionOptionsEnum, MessageSendConfig } from "@verida/types";
 
 const VAULT_CONTEXT_NAME = "Verida: Vault";
 
@@ -91,7 +91,7 @@ class VeridaOutbox {
       );
     } catch (err) {
       throw new Error(
-        "Unable to send message. Recipient does not have an inbox for that context"
+        `Unable to send message. Recipient does not have an inbox for that context (${receivingContextName})`
       );
     }
 
@@ -102,6 +102,10 @@ class VeridaOutbox {
       sentTo: did,
       sent: false,
     };
+
+    if (config.openUrl) {
+      outboxEntry.openUrl = config.openUrl
+    }
 
     const outbox = this.outboxDatastore;
     const response: any = await outbox.save(outboxEntry);
@@ -204,8 +208,8 @@ class VeridaOutbox {
       did,
       {
         permissions: {
-          read: PermissionOptionsEnum.PUBLIC,
-          write: PermissionOptionsEnum.PUBLIC,
+          read: DatabasePermissionOptionsEnum.PUBLIC,
+          write: DatabasePermissionOptionsEnum.PUBLIC,
         },
         contextName: config.recipientContextName!,
       }
