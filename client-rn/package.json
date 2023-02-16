@@ -1,6 +1,6 @@
 {
   "name": "@verida/client-rn",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "main": "dist/src/index.js",
   "license": "ISC",
   "directories": {
