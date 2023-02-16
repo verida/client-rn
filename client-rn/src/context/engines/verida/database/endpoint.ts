@@ -102,6 +102,7 @@ export default class Endpoint extends EventEmitter {
                     // Ping database to ensure replication is active
                     // No need to await
                     // Retry if auth error if we are the database owner
+                    console.log('a')
                     instance.client.pingDatabases([databaseHash], isPublicWrite, did, instance.contextName, isOwner)
 
                     if (result.status == 401) {
@@ -145,7 +146,9 @@ export default class Endpoint extends EventEmitter {
         // Ping database to ensure replication is active
         // No need to await
         // Retry if auth error if we are the database owner
-        this.client.pingDatabases([databaseHash], isPublicWrite, did, this.contextName, isOwner)
+        if (!this.usePublic) {
+            this.client.pingDatabases([databaseHash], isPublicWrite, did, this.contextName, isOwner)
+        }
         return db
     }
 
