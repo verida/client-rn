@@ -41,4 +41,4 @@ yarn run build
 yarn publish --tag next
 ```
 
-Use the tag `next` for an upcoming releaes (ie: RC) and `latest` for the latest release
+Use the tag `next` for an upcoming release (ie: RC) and `latest` for the latest release
