@@ -21,7 +21,7 @@ describe('Username lookup tests', () => {
         }
     })
 
-    const account = new AutoAccount(CONFIG.DEFAULT_ENDPOINTS, {
+    const account = new AutoAccount({
         privateKey: CONFIG.VDA_PRIVATE_KEY,
         environment: CONFIG.ENVIRONMENT,
         didClientConfig: CONFIG.DID_CLIENT_CONFIG
@@ -35,7 +35,7 @@ describe('Username lookup tests', () => {
             DID = await account.did()
 
             // Make a 32 character username
-            USERNAME = `${DID.substring(30)}.vda`
+            USERNAME = `${DID.substring(26)}.vda`
 
             // register a username if none exists
             try {

@@ -49,7 +49,7 @@ describe('Verida database tests', () => {
         
         it('can open a database with owner/owner permissions', async function() {
             // Initialize account 1
-            const account1 = new AutoAccount(CONFIG.DEFAULT_ENDPOINTS, {
+            const account1 = new AutoAccount({
                 privateKey: CONFIG.VDA_PRIVATE_KEY,
                 environment: CONFIG.ENVIRONMENT,
                 didClientConfig: CONFIG.DID_CLIENT_CONFIG
@@ -59,7 +59,7 @@ describe('Verida database tests', () => {
             context = await network.openContext(CONFIG.CONTEXT_NAME, true)
 
             // Initialize account 2
-            const account2 = new AutoAccount(CONFIG.DEFAULT_ENDPOINTS, {
+            const account2 = new AutoAccount({
                 privateKey: CONFIG.VDA_PRIVATE_KEY_2,
                 environment: CONFIG.ENVIRONMENT,
                 didClientConfig: CONFIG.DID_CLIENT_CONFIG
@@ -69,7 +69,7 @@ describe('Verida database tests', () => {
             context2 = await network2.openContext(CONFIG.CONTEXT_NAME, true)
 
             // Initialize account 3
-            const account3 = new AutoAccount(CONFIG.DEFAULT_ENDPOINTS, {
+            const account3 = new AutoAccount({
                 privateKey: CONFIG.VDA_PRIVATE_KEY_3,
                 environment: CONFIG.ENVIRONMENT,
                 didClientConfig: CONFIG.DID_CLIENT_CONFIG

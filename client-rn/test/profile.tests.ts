@@ -13,9 +13,7 @@ const DATA = {
 describe('Profile tests', () => {
     const client1 = new Client({
         environment: CONFIG.ENVIRONMENT,
-        didClientConfig: {
-            rpcUrl: CONFIG.DID_CLIENT_CONFIG.rpcUrl
-        }
+        didClientConfig: CONFIG.DID_CLIENT_CONFIG
     })
     let did1, context1, profile1
 
@@ -30,13 +28,12 @@ describe('Profile tests', () => {
 
         it('can initialise own profile', async () => {
             try {
-                const account1 = new AutoAccount(CONFIG.DEFAULT_ENDPOINTS, {
+                const account1 = new AutoAccount({
                     privateKey: CONFIG.VDA_PRIVATE_KEY,
                     environment: CONFIG.ENVIRONMENT,
                     didClientConfig: CONFIG.DID_CLIENT_CONFIG
                 })
                 did1 = await account1.did()
-                console.log(did1)
                 await client1.connect(account1)
                 context1 = await client1.openContext(CONFIG.CONTEXT_NAME, true)
 
@@ -72,7 +69,7 @@ describe('Profile tests', () => {
 
         it('can access an external profile', async () => {
             await sleep(5000)
-            const account2 = new AutoAccount(CONFIG.DEFAULT_ENDPOINTS, {
+            const account2 = new AutoAccount({
                 privateKey: CONFIG.VDA_PRIVATE_KEY_2,
                 environment: CONFIG.ENVIRONMENT,
                 didClientConfig: CONFIG.DID_CLIENT_CONFIG
@@ -123,7 +120,7 @@ describe('Profile tests', () => {
                     null
                 );
             }, {
-                message: `Account does not have a public profile for ${wrongContextName}`
+                message: `Account (${did1}) does not have a public profile for ${wrongContextName}`
             })
         });
 
@@ -136,7 +133,7 @@ describe('Profile tests', () => {
                     wrongFallbackContextName
                 );
             }, {
-                message: `Account does not have a public profile for ${wrongFallbackContextName}`
+                message: `Account (${did1}) does not have a public profile for ${wrongFallbackContextName}`
             })
         });
     });

@@ -17,6 +17,7 @@ describe('Verida basic database tests', () => {
     const network = new Client({
         environment: CONFIG.ENVIRONMENT,
         didClientConfig: {
+            network: CONFIG.ENVIRONMENT,
             rpcUrl: CONFIG.DID_CLIENT_CONFIG.rpcUrl
         }
     })
@@ -26,7 +27,7 @@ describe('Verida basic database tests', () => {
         
         it('can open a database with owner/owner permissions', async function() {
             // Initialize account 1
-            account1 = new AutoAccount(CONFIG.DEFAULT_ENDPOINTS, {
+            account1 = new AutoAccount({
                 privateKey: CONFIG.VDA_PRIVATE_KEY,
                 environment: CONFIG.ENVIRONMENT,
                 didClientConfig: CONFIG.DID_CLIENT_CONFIG
