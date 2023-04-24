@@ -25,7 +25,7 @@ describe('Verida database tests', () => {
         
         it('can open a database with owner/owner permissions', async function() {
             // Initialize account 1
-            const account1 = new AutoAccount(CONFIG.DEFAULT_ENDPOINTS, {
+            const account1 = new AutoAccount({
                 privateKey: CONFIG.VDA_PRIVATE_KEY,
                 environment: CONFIG.ENVIRONMENT,
                 didClientConfig: CONFIG.DID_CLIENT_CONFIG

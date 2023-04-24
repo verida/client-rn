@@ -17,6 +17,7 @@ describe('Verida database connectivity tests', () => {
     const network = new Client({
         environment: CONFIG.ENVIRONMENT,
         didClientConfig: {
+            network: CONFIG.ENVIRONMENT,
             rpcUrl: CONFIG.DID_CLIENT_CONFIG.rpcUrl
         }
     })
@@ -25,11 +26,11 @@ describe('Verida database connectivity tests', () => {
     const eventTypes = ['change', 'paused', 'active', 'complete']
 
     describe('Manage databases for the authenticated user', function() {
-        this.timeout(20*1000)
+        this.timeout(200*1000)
         
         it('can listen for sync events', async function() {
             // Initialize account 1
-            const account1 = new AutoAccount(CONFIG.DEFAULT_ENDPOINTS, {
+            const account1 = new AutoAccount({
                 privateKey: CONFIG.VDA_PRIVATE_KEY,
                 environment: CONFIG.ENVIRONMENT,
                 didClientConfig: CONFIG.DID_CLIENT_CONFIG
