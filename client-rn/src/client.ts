@@ -270,8 +270,9 @@ class Client implements IClient {
     delete _data["_rev"];
 
     let validSignatures = [];
-    for (let key in data.signatures) {
-      const signerParts = key.match(/did:vda:([^]*):([^]*)\?context=(.*)$/);
+    for (let sigIndex in data.signatures) {
+      const signature = data.signatures[sigIndex]
+      const signerParts = sigIndex.match(/did:vda:([^]*):([^]*)\?context=(.*)$/);
       if (!signerParts || signerParts.length != 4) {
         continue;
       }
@@ -283,7 +284,6 @@ class Client implements IClient {
       const signerDid = `did:vda:${sNetwork}:${sDid}`;
 
       if (!did || signerDid.toLowerCase() == did.toLowerCase()) {
-        const signature = data.signatures[key];
         const didDocument = await this.didClient.get(signerDid);
         if (!didDocument) {
           continue;
@@ -292,7 +292,7 @@ class Client implements IClient {
         const validSig = didDocument.verifyContextSignature(
           _data,
           sContext,
-          signature,
+          signature['secp256k1'],
           true
         );
 
