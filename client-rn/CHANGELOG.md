@@ -1,3 +1,25 @@
+2023-12-26 (v.3.0.0)
+-------------------
+
+- Mainnet release
+- Fix: Close outbox database connection after sending a message
+- Feature: Expose new `migrateContext()` and `migrateDatase()` utility methods
+- Feature: Implement utility method `context.deleteDatabase(databaseName)`
+- Fix: Close databases when they are removed from the cache
+- Fix: Close databases prior to deletion
+- Feature: Support `verifyEncryptionKey: boolean` property on the config options when opening a database
+- Fix: Closing encrypted database could have a race condition if called more than once
+- Support `verifyWebsite()` helper method on `Profile` object (uses `.well-known/did.json`)
+- Feature: Support `client.destroyContext()`
+- Feature: Support `client.destroyAccount()`
+
+2023-05-12 (v.2.3.5)
+-------------------
+
+- Fix: Getting data by URI didn't support `devnet`
+- Test: Add test to easily test multiple storage nodes
+
+
 2023-04-20 (v2.3.0)
 -------------------
 
