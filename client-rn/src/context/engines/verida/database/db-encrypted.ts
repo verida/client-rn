@@ -42,6 +42,7 @@ class EncryptedDatabase extends BaseDb {
   private _syncStatus?: string;
   private _localDbEncrypted: any;
   private _localDb: any;
+  private _closing: boolean = false
 
   private _syncError = null;
 
@@ -60,6 +61,12 @@ class EncryptedDatabase extends BaseDb {
   public async init() {
     if (this.db) {
       return;
+    }
+
+    if (this.config.plugins) {
+      for (let plugin of this.config.plugins) {
+        PouchDBCrypt.plugin(plugin)
+      }
     }
 
     const now = (new Date()).getTime()
@@ -244,8 +251,16 @@ class EncryptedDatabase extends BaseDb {
   public async close(options: DatabaseCloseOptions = {
     clearLocal: false
   }) {
+    if (this.closing) {
+      return
+    }
+
+    this.closing = true
     if (this._sync === null) {
       // No sync object indicates this database is closed
+
+      await this.engine.closeDatabase(this.did, this.databaseName)
+      this.emit('closed', this.databaseName)
       return
     }
 
